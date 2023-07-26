@@ -85,11 +85,8 @@ inline void Logger::init(std::string filename, FileType type)
 
     bool is_exist = boost::filesystem::exists(temp_1);
 
-    if(is_exist)
-        std::cout << "Exist" << std::endl;
-    else
-    {
-        std::cout << "Not Exist" << std::endl;
+    if(!is_exist){
+        std::cout << "Create folder " + flight_dir + " in " + home_dir << std::endl;
         temp_1 = "mkdir " + home_dir + "/'" + flight_dir +"'";
         system(temp_1.c_str());
     }
@@ -114,10 +111,10 @@ inline void Logger::init(std::string filename, FileType type)
             file_idx++;
             temp_1 = temp_filedir + filename + "-" + std::to_string(file_idx) + file_ext;
         }
-        std::cout << "Using : " << temp_1 << " as alternative." << std::endl;
     }
     
     this->full_filename = temp_1;
+    std::cout << "Log file stored in : " << temp_1 << " as alternative." << std::endl;
     info_msg = 0;
     warn_msg = 0;
     err_msg = 0;
