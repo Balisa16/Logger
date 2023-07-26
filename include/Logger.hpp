@@ -93,7 +93,8 @@ inline void Logger::show(std::string msg, LogLevel level)
     std::string header = getLvl(level);
     std::time_t currentTime = std::time(nullptr);
     char timeString[100];
-    std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
+    std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
+    // std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
     header += ' ';
     header += timeString;
     header += ' ';
