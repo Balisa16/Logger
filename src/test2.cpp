@@ -19,8 +19,8 @@ int main()
     struct passwd *pw = getpwuid(getuid());
     const char *homedir = pw->pw_dir;
     std::string str = homedir;
-    str += "/";
-    std::cout << str << "Test" << std::endl;
+    str += "/Flight Log";
+    std::cout << str << std::endl;
 
     bool is_exist = boost::filesystem::exists(str);
 
