@@ -28,6 +28,7 @@ private:
     FileType type;
     std::ofstream writer;
     void resume();
+    uint16_t info_msg, warn_msg, err_msg;
 public:
     Logger(std::string filename, FileType type = FileType::TXT);
     void start();
@@ -46,10 +47,16 @@ inline void Logger::resume()
     std::strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
 
     time = std::chrono::system_clock::to_time_t(stop_time);
-    char start_str[100];
+    char stop_str[100];
     std::strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
 
-    std::cout << "\n\nFlight Resume :\nStart Time\t: " << 
+    std::chrono::duration<double> elapsed_seconds = stop_time - start_time;
+
+    std::cout << "\n\nFlight Resume :\n\tStart Time\t: " << start_str << 
+        "\n\tStart Time\t: " << stop_str << 
+        "\n\tFlight Duration\t: " << std::to_string(elapsed_seconds.count()) << " seconds\nErrors\t\t: " << err_msg << 
+        " message\nWarnings\t: " << warn_msg <<
+        " message\nInformation\t: " << info_msg;
 }
 
 Logger::Logger(std::string filename, FileType type)
@@ -64,6 +71,9 @@ Logger::Logger(std::string filename, FileType type)
         full_filename = filename + ".csv";
         break;
     }
+    info_msg = 0;
+    warn_msg = 0;
+    err_msg = 0;
 }
 
 inline void Logger::start()
