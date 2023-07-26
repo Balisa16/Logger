@@ -94,14 +94,17 @@ inline void Logger::show(std::string msg, LogLevel level)
     std::time_t currentTime = std::time(nullptr);
     char timeString[100];
     std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
-    header += ",\t";
+    header += ' ';
     header += timeString;
-    header += ",\t";
+    header += ' ';
 
 
     std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
-    header += std::to_string(elapsed_seconds.count());
-    header += " s\t:" + msg;
+    int int_duration = elapsed_seconds.count();
+    header += std::to_string(int_duration);
+    header += " s :" + msg;
+
+    std::cout << header << '\n';
 }
 
 inline void Logger::write_show(std::string msg, LogLevel level)
@@ -111,7 +114,7 @@ inline void Logger::write_show(std::string msg, LogLevel level)
 inline void Logger::finish()
 {
     stop_time = std::chrono::system_clock::now();
-    writer.close()
+    writer.close();
 }
 
 Logger::~Logger()
