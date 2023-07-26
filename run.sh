@@ -4,5 +4,5 @@ if [ ! -z "$1" ]
   then
   	./$1
 else
-    ./test
+    ./test1
 fi

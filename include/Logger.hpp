@@ -74,14 +74,20 @@ inline Logger::Logger()
 
 inline void Logger::init(std::string filename, FileType type)
 {
+    std::time_t time = std::chrono::system_clock::to_time_t(start_time);
+    char start_str[100];
+    std::strftime(start_str, sizeof(start_str), " %Y%m%d%H%M%S", std::localtime(&time));
+
     this->type = type;
     switch (type)
     {
     case FileType::TXT:
-        full_filename = filename + ".txt";
+        full_filename = filename + start_str + ".txt";
         break;
     case FileType::CSV:
-        full_filename = filename + ".csv";
+        full_filename = filename + start_str + ".csv";
+        break;
+    default:
         break;
     }
     info_msg = 0;
