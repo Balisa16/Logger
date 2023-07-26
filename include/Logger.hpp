@@ -60,11 +60,13 @@ inline void Logger::start()
 {
     start_time = std::chrono::system_clock::now();
     writer.open(this->full_filename);
+    if(type == FileType::CSV)
+        writer << "Level,Datetime,Time,Message";
 }
 
 inline std::string Logger::getLvl(LogLevel lvl)
 {
-    std::string lvl_string = "[ ";
+    std::string lvl_string = "[";
     switch (lvl)
     {
     case LogLevel::INFO:
@@ -80,7 +82,7 @@ inline std::string Logger::getLvl(LogLevel lvl)
     default:
         break;
     }
-    lvl_string += " ]";
+    lvl_string += "]";
     return lvl_string;
 }
 
@@ -103,7 +105,7 @@ inline void Logger::show(std::string msg, LogLevel level)
     std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
     int int_duration = elapsed_seconds.count();
     header += std::to_string(int_duration);
-    header += " s :" + msg;
+    header += "s : " + msg;
 
     std::cout << header << '\n';
 }
