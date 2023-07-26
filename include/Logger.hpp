@@ -25,15 +25,22 @@ private:
     std::string full_filename;
     LogLevel level;
     FileType type;
+    std::ofstream writer;
     void resume();
 public:
     Logger(std::string filename, FileType type = FileType::TXT);
+    void start();
     void write(std::string msg, LogLevel level = LogLevel::INFO);
     void show(std::string msg, LogLevel level = LogLevel::INFO);
     void write_show(std::string msg, LogLevel level = LogLevel::INFO);
     void finish();
+    std::string getLvl(LogLevel lvl = LogLevel::INFO);
     ~Logger();
 };
+
+inline void Logger::resume()
+{
+}
 
 Logger::Logger(std::string filename, FileType type)
 {
@@ -47,12 +54,64 @@ Logger::Logger(std::string filename, FileType type)
         full_filename = filename + ".csv";
         break;
     }
+}
+
+inline void Logger::start()
+{
     start_time = std::chrono::system_clock::now();
+    writer.open(this->full_filename);
+}
+
+inline std::string Logger::getLvl(LogLevel lvl)
+{
+    std::string lvl_string = "[ ";
+    switch (lvl)
+    {
+    case LogLevel::INFO:
+        lvl_string += "INFO ";
+        break;
+    case LogLevel::WARNING:
+        lvl_string += "WARN ";
+        break;
+    case LogLevel::ERROR:
+        lvl_string += "ERROR";
+        break;
+    
+    default:
+        break;
+    }
+    lvl_string += " ]";
+    return lvl_string;
+}
+
+inline void Logger::write(std::string msg, LogLevel level)
+{
+}
+
+inline void Logger::show(std::string msg, LogLevel level)
+{
+    std::string header = getLvl(level);
+    std::time_t currentTime = std::time(nullptr);
+    char timeString[100];
+    std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
+    header += ",\t";
+    header += timeString;
+    header += ",\t";
+
+
+    std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
+    header += std::to_string(elapsed_seconds.count());
+    header += " s\t:" + msg;
+}
+
+inline void Logger::write_show(std::string msg, LogLevel level)
+{
 }
 
 inline void Logger::finish()
 {
     stop_time = std::chrono::system_clock::now();
+    writer.close()
 }
 
 Logger::~Logger()
