@@ -104,8 +104,8 @@ inline void Logger::write(std::string msg, LogLevel level)
     header += timeString;
     header += separator;
     std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
-    int int_duration = elapsed_seconds.count();
-    header += std::to_string(int_duration);
+
+    header += std::to_string(elapsed_seconds.count());
     header += separator + msg;
     writer << header << '\n';
 }
