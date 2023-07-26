@@ -98,7 +98,7 @@ inline void Logger::init(std::string filename, FileType type)
     if(type == FileType::TXT)
         file_ext = ".txt";
 
-    std::string temp_filedir = home_dir + "/'" + flight_dir +"'/";
+    std::string temp_filedir = home_dir + "/" + flight_dir +"/";
     
     temp_1 = temp_filedir + filename + file_ext;
     if(boost::filesystem::exists(temp_1.c_str()))
@@ -113,7 +113,7 @@ inline void Logger::init(std::string filename, FileType type)
         }
     }
     
-    this->full_filename = "/home/a/Flight Log/test2.csv";
+    this->full_filename = temp_1;
     std::cout << "Log file stored in : " << temp_1 << std::endl;
     info_msg = 0;
     warn_msg = 0;
