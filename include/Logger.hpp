@@ -49,7 +49,7 @@ inline void Logger::resume()
 
     time = std::chrono::system_clock::to_time_t(stop_time);
     char stop_str[100];
-    std::strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
+    std::strftime(stop_str, sizeof(stop_str), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
 
     std::chrono::duration<double> elapsed_seconds = stop_time - start_time;
 
@@ -57,7 +57,7 @@ inline void Logger::resume()
         "\n\tStop Time\t: " << stop_str << 
         "\n\tFlight Duration\t: " << std::to_string(elapsed_seconds.count()) << " seconds\nErrors\t\t: " << err_msg << 
         " message\nWarnings\t: " << warn_msg <<
-        " message\nInformation\t: " << info_msg << '\n';
+        " message\nInformation\t: " << info_msg << " message";
 }
 
 Logger::Logger(std::string filename, FileType type)
