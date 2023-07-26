@@ -30,9 +30,10 @@ private:
     LogLevel level;
     FileType type;
     std::ofstream writer;
-    void resume();
     uint16_t info_msg, warn_msg, err_msg;
     bool combo_msg;
+    void resume();
+    std::string getLvl(LogLevel lvl = LogLevel::INFO);
 public:
     Logger(std::string filename, FileType type = FileType::TXT);
     Logger();
@@ -42,7 +43,6 @@ public:
     void show(std::string msg, LogLevel level = LogLevel::INFO);
     void write_show(std::string msg, LogLevel level = LogLevel::INFO);
     void finish();
-    std::string getLvl(LogLevel lvl = LogLevel::INFO);
     ~Logger();
 };
 
