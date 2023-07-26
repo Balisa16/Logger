@@ -32,6 +32,8 @@ private:
     bool combo_msg;
 public:
     Logger(std::string filename, FileType type = FileType::TXT);
+    Logger();
+    void init(std::string filename, FileType type = FileType::TXT);
     void start();
     void write(std::string msg, LogLevel level = LogLevel::INFO);
     void show(std::string msg, LogLevel level = LogLevel::INFO);
@@ -61,6 +63,16 @@ inline void Logger::resume()
 }
 
 Logger::Logger(std::string filename, FileType type)
+{
+    init(filename, type);
+}
+
+inline Logger::Logger()
+{
+
+}
+
+inline void Logger::init(std::string filename, FileType type)
 {
     this->type = type;
     switch (type)
