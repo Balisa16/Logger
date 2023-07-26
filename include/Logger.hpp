@@ -74,7 +74,7 @@ inline Logger::Logger()
 
 inline void Logger::init(std::string filename, FileType type)
 {
-    std::time_t time = std::chrono::system_clock::to_time_t(start_time);
+    std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     char start_str[100];
     std::strftime(start_str, sizeof(start_str), " %Y%m%d%H%M%S", std::localtime(&time));
 
