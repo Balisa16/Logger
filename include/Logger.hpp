@@ -5,7 +5,9 @@
 #include <fstream>
 #include <chrono>
 #include <ctime>    
-
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 
 enum class LogLevel {
     INFO,
@@ -78,14 +80,18 @@ inline void Logger::init(std::string filename, FileType type)
     char start_str[100];
     std::strftime(start_str, sizeof(start_str), " %Y%m%d%H%M%S", std::localtime(&time));
 
+    struct passwd *pw = getpwuid(getuid());
+    const char *homedir = pw->pw_dir + '/';
+    std::cout << homedir << std::endl;
+
     this->type = type;
     switch (type)
     {
     case FileType::TXT:
-        full_filename = filename + start_str + ".txt";
+        full_filename = homedir + filename + start_str + ".txt";
         break;
     case FileType::CSV:
-        full_filename = filename + start_str + ".csv";
+        full_filename = homedir + filename + start_str + ".csv";
         break;
     default:
         break;
