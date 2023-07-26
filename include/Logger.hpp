@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
+#include <boost/filesystem.hpp>
 
 enum class LogLevel {
     INFO,
@@ -84,6 +85,8 @@ inline void Logger::init(std::string filename, FileType type)
     const char *homedir = pw->pw_dir;
     std::string str = homedir;
     str += "/";
+
+    // boost::filesystem::exists()
 
     this->type = type;
     switch (type)

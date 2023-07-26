@@ -16,11 +16,18 @@ int main()
     // lg.finish();
 
 
-    // struct passwd *pw = getpwuid(getuid());
-    // const char *homedir = pw->pw_dir;
-    // std::string str = homedir;
-    // str += "/";
-    // std::cout << str << "Test" << std::endl;
+    struct passwd *pw = getpwuid(getuid());
+    const char *homedir = pw->pw_dir;
+    std::string str = homedir;
+    str += "/";
+    std::cout << str << "Test" << std::endl;
+
+    bool is_exist = boost::filesystem::exists(str);
+
+    if(is_exist)
+        std::cout << "Exist" << std::endl;
+    else
+        std::cout << "Exist" << std::endl;
 
     return 0;
 }
