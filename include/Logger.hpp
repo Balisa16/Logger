@@ -29,6 +29,7 @@ private:
     std::ofstream writer;
     void resume();
     uint16_t info_msg, warn_msg, err_msg;
+    bool combo_msg;
 public:
     Logger(std::string filename, FileType type = FileType::TXT);
     void start();
@@ -53,10 +54,10 @@ inline void Logger::resume()
     std::chrono::duration<double> elapsed_seconds = stop_time - start_time;
 
     std::cout << "\n\nFlight Resume :\n\tStart Time\t: " << start_str << 
-        "\n\tStart Time\t: " << stop_str << 
+        "\n\tStop Time\t: " << stop_str << 
         "\n\tFlight Duration\t: " << std::to_string(elapsed_seconds.count()) << " seconds\nErrors\t\t: " << err_msg << 
         " message\nWarnings\t: " << warn_msg <<
-        " message\nInformation\t: " << info_msg;
+        " message\nInformation\t: " << info_msg << '\n';
 }
 
 Logger::Logger(std::string filename, FileType type)
@@ -74,6 +75,7 @@ Logger::Logger(std::string filename, FileType type)
     info_msg = 0;
     warn_msg = 0;
     err_msg = 0;
+    combo_msg = false;
 }
 
 inline void Logger::start()
@@ -127,6 +129,20 @@ inline void Logger::write(std::string msg, LogLevel level)
     header += std::to_string(elapsed_seconds.count());
     header += separator + msg;
     writer << header << '\n';
+    switch (level)
+    {
+    case LogLevel::INFO:
+        info_msg++;
+        break;
+    case LogLevel::WARNING:
+        warn_msg++;
+        break;
+    case LogLevel::ERROR:
+        err_msg++;
+        break;
+    default:
+        break;
+    }
 }
 
 inline void Logger::show(std::string msg, LogLevel level)
@@ -147,12 +163,30 @@ inline void Logger::show(std::string msg, LogLevel level)
     header += "s : " + msg;
 
     std::cout << header << '\n';
+
+    if(!combo_msg)
+        switch (level)
+        {
+        case LogLevel::INFO:
+            info_msg++;
+            break;
+        case LogLevel::WARNING:
+            warn_msg++;
+            break;
+        case LogLevel::ERROR:
+            err_msg++;
+            break;
+        default:
+            break;
+        }
 }
 
 inline void Logger::write_show(std::string msg, LogLevel level)
 {
+    combo_msg = true;
     write(msg, level);
     show(msg, level);
+    combo_msg = false;
 }
 
 inline void Logger::finish()
