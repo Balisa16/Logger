@@ -18,9 +18,11 @@ int main()
 
     struct passwd *pw = getpwuid(getuid());
 
-    const char *homedir = pw->pw_dir + '/';
+    const char *homedir = pw->pw_dir;
 
-    std::cout << homedir << std::endl;
+    std::string str = *homedir + "/";
+    
+    std::cout << str << "Test" << std::endl;
 
     return 0;
 }
