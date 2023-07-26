@@ -113,8 +113,8 @@ inline void Logger::init(std::string filename, FileType type)
         }
     }
     
-    this->full_filename = temp_1;
-    std::cout << "Log file stored in : " << temp_1 << " as alternative." << std::endl;
+    this->full_filename = "/home/a/Flight Log/test2.csv";
+    std::cout << "Log file stored in : " << temp_1 << std::endl;
     info_msg = 0;
     warn_msg = 0;
     err_msg = 0;

@@ -6,7 +6,7 @@ int main()
     Logger lg;
     lg.init("test", FileType::CSV);
     lg.start();
-    for (size_t i = 0; i < 300; i++)
+    for (size_t i = 0; i < 50; i++)
     {
         lg.write_show("Message " + std::to_string(i));
         std::chrono::milliseconds sleepDuration(100);
