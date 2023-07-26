@@ -57,7 +57,7 @@ inline void Logger::resume()
         "\n\tStop Time\t: " << stop_str << 
         "\n\tFlight Duration\t: " << std::to_string(elapsed_seconds.count()) << " seconds\nErrors\t\t: " << err_msg << 
         " message\nWarnings\t: " << warn_msg <<
-        " message\nInformation\t: " << info_msg << " message";
+        " message\nInformation\t: " << info_msg << " message\n";
 }
 
 Logger::Logger(std::string filename, FileType type)
