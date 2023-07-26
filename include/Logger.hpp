@@ -41,13 +41,18 @@ Logger::Logger(std::string filename, FileType type)
     switch (type)
     {
     case FileType::TXT:
-        /* code */
+        full_filename = filename + ".txt";
         break;
     case FileType::CSV:
-
+        full_filename = filename + ".csv";
         break;
     }
     start_time = std::chrono::system_clock::now();
+}
+
+inline void Logger::finish()
+{
+    stop_time = std::chrono::system_clock::now();
 }
 
 Logger::~Logger()
