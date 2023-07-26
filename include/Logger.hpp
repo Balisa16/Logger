@@ -23,6 +23,7 @@ class Logger
 private:
     std::chrono::_V2::system_clock::time_point start_time, stop_time;
     std::string full_filename;
+    uint64_t line_counter;
     LogLevel level;
     FileType type;
     std::ofstream writer;
@@ -61,7 +62,8 @@ inline void Logger::start()
     start_time = std::chrono::system_clock::now();
     writer.open(this->full_filename);
     if(type == FileType::CSV)
-        writer << "Level,Datetime,Flight Time(s),Message";
+        writer << "Level,Id,Datetime,Flight Time(s),Message\n";
+    line_counter = 0;
 }
 
 inline std::string Logger::getLvl(LogLevel lvl)
@@ -88,12 +90,15 @@ inline std::string Logger::getLvl(LogLevel lvl)
 
 inline void Logger::write(std::string msg, LogLevel level)
 {
+    line_counter++;
     std::string header = getLvl(level);
     std::time_t currentTime = std::time(nullptr);
     char timeString[100];
     std::string separator = "   ";
     if(type == FileType::CSV)
         separator = ',';
+    header += separator;
+    header += std::to_string(line_counter);
     header += separator;
     std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
     header += timeString;
