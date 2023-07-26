@@ -8,7 +8,7 @@ int main()
     lg.start();
     for (size_t i = 0; i < 50; i++)
     {
-        lg.write_show("Message %d", LogLevel::INFO, i);
+        lg.write_show(LogLevel::INFO, "Message %d", i);
         std::chrono::milliseconds sleepDuration(100);
         std::this_thread::sleep_for(sleepDuration);
     }

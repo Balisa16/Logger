@@ -43,9 +43,9 @@ public:
     Logger();
     void init(std::string filename, FileType type = FileType::TXT);
     void start();
-    void write(const char *format, LogLevel level, ...);
-    void show(const char *format, LogLevel level, ...);
-    void write_show(const char *format, LogLevel level, ...);
+    void write(LogLevel level, const char *format, ...);
+    void show(LogLevel level, const char *format, ...);
+    void write_show(LogLevel level, const char *format, ...);
     void finish();
     ~Logger();
 };
@@ -165,7 +165,7 @@ inline std::string Logger::cust_printf(const char *format, va_list args)
 }
 
 
-inline void Logger::write(const char *format, LogLevel level, ...)
+inline void Logger::write(LogLevel level, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -207,7 +207,7 @@ inline void Logger::write(const char *format, LogLevel level, ...)
     }
 }
 
-inline void Logger::show(const char *format, LogLevel level, ...)
+inline void Logger::show(LogLevel level, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
@@ -248,7 +248,7 @@ inline void Logger::show(const char *format, LogLevel level, ...)
         }
 }
 
-inline void Logger::write_show(const char *format, LogLevel level, ...)
+inline void Logger::write_show(LogLevel level, const char *format, ...)
 {
     combo_msg = true;
 
@@ -279,6 +279,7 @@ inline void Logger::write_show(const char *format, LogLevel level, ...)
         header += separator + msg;
         writer << header << '\n';
     }
+    header = getLvl(level);
     {
         std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
         header += ' ';
