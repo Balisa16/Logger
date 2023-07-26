@@ -38,14 +38,16 @@ private:
     void resume();
     std::string getLvl(LogLevel lvl = LogLevel::INFO);
     std::string cust_printf(const char *format, ...);
+    void write_log(const char* format, va_list args);
+    void show_log(const char* format, va_list args);
 public:
     Logger(std::string filename, FileType type = FileType::TXT);
     Logger();
     void init(std::string filename, FileType type = FileType::TXT);
     void start();
-    void write(std::string msg, LogLevel level, ...);
-    void show(std::string msg, LogLevel level, ...);
-    void write_show(std::string msg, LogLevel level, ...);
+    void write(const char *format, LogLevel level, ...);
+    void show(const char *format, LogLevel level, ...);
+    void write_show(const char *format, LogLevel level, ...);
     void finish();
     ~Logger();
 };
@@ -166,7 +168,16 @@ inline std::string Logger::cust_printf(const char *format, ...)
     return formattedString;
 }
 
-inline void Logger::write(std::string msg, LogLevel level, ...)
+inline void Logger::write_log(const char *format, va_list args)
+{
+    std::string msg;
+    char formattedString[5000];
+    va_start(test, format);
+    vsprintf(buffer, format, args);
+    va_end(args);
+}
+
+inline void Logger::write(const char *format, LogLevel level, ...)
 {
     line_counter++;
     std::string header = getLvl(level);
@@ -202,7 +213,7 @@ inline void Logger::write(std::string msg, LogLevel level, ...)
     }
 }
 
-inline void Logger::show(std::string msg, LogLevel level, ...)
+inline void Logger::show(const char *format, LogLevel level, ...)
 {
     std::string header = getLvl(level);
     std::time_t currentTime = std::time(nullptr);
@@ -238,11 +249,16 @@ inline void Logger::show(std::string msg, LogLevel level, ...)
         }
 }
 
-inline void Logger::write_show(std::string msg, LogLevel level, ...)
+inline void Logger::write_show(const char *format, LogLevel level, ...)
 {
+    va_list args;
+    va_start(args, level);
+    write_log(level, format, args);
+    va_end(args);
+
     combo_msg = true;
-    write(msg, level);
-    show(msg, level);
+    write(format, level, args);
+    show(format, level, args);
     combo_msg = false;
 }
 
