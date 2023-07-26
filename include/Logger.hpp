@@ -77,29 +77,47 @@ inline Logger::Logger()
 
 inline void Logger::init(std::string filename, FileType type)
 {
-    std::time_t time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    char start_str[100];
-    std::strftime(start_str, sizeof(start_str), " %Y%m%d%H%M%S", std::localtime(&time));
-
     struct passwd *pw = getpwuid(getuid());
-    const char *homedir = pw->pw_dir;
-    std::string str = homedir;
-    str += "/";
+    const char *home_char = pw->pw_dir;
+    std::string home_dir = home_char;
+    std::string flight_dir = "Flight Log";
+    std::string temp_1 = home_dir + "/" + flight_dir;
 
-    // boost::filesystem::exists()
+    bool is_exist = boost::filesystem::exists(temp_1);
 
-    this->type = type;
-    switch (type)
+    if(is_exist)
+        std::cout << "Exist" << std::endl;
+    else
     {
-    case FileType::TXT:
-        full_filename = homedir + filename + start_str + ".txt";
-        break;
-    case FileType::CSV:
-        full_filename = homedir + filename + start_str + ".csv";
-        break;
-    default:
-        break;
+        std::cout << "Not Exist" << std::endl;
+        temp_1 = "mkdir " + home_dir + "/'" + flight_dir +"'";
+        system(temp_1.c_str());
     }
+
+    // Set file type
+    this->type = type;
+
+    std::string file_ext = ".csv";
+    if(type == FileType::TXT)
+        file_ext = ".txt";
+
+    std::string temp_filedir = home_dir + "/'" + flight_dir +"'/";
+    
+    temp_1 = temp_filedir + filename + file_ext;
+    if(boost::filesystem::exists(temp_1.c_str()))
+    {
+        std::cout << "File : " << temp_1 << " already exist." << std::endl;
+        int file_idx = 1;
+        temp_1 = temp_filedir + filename + "-" + std::to_string(file_idx) + file_ext;
+        while (boost::filesystem::exists(temp_1.c_str()))
+        {
+            file_idx++;
+            temp_1 = temp_filedir + filename + "-" + std::to_string(file_idx) + file_ext;
+        }
+        std::cout << "Using : " << temp_1 << " as alternative." << std::endl;
+    }
+    
+    this->full_filename = temp_1;
     info_msg = 0;
     warn_msg = 0;
     err_msg = 0;
