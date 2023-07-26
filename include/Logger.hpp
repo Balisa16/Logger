@@ -41,6 +41,15 @@ public:
 
 inline void Logger::resume()
 {
+    std::time_t time = std::chrono::system_clock::to_time_t(start_time);
+    char start_str[100];
+    std::strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
+
+    time = std::chrono::system_clock::to_time_t(stop_time);
+    char start_str[100];
+    std::strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
+
+    std::cout << "\n\nFlight Resume :\nStart Time\t: " << 
 }
 
 Logger::Logger(std::string filename, FileType type)
@@ -140,6 +149,7 @@ inline void Logger::finish()
 {
     stop_time = std::chrono::system_clock::now();
     writer.close();
+    resume();
 }
 
 Logger::~Logger()
