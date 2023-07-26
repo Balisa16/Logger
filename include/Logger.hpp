@@ -81,8 +81,9 @@ inline void Logger::init(std::string filename, FileType type)
     std::strftime(start_str, sizeof(start_str), " %Y%m%d%H%M%S", std::localtime(&time));
 
     struct passwd *pw = getpwuid(getuid());
-    const char *homedir = pw->pw_dir + '/';
-    std::cout << homedir << std::endl;
+    const char *homedir = pw->pw_dir;
+    std::string str = homedir;
+    str += "/";
 
     this->type = type;
     switch (type)

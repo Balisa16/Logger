@@ -16,13 +16,11 @@ int main()
     // lg.finish();
 
 
-    struct passwd *pw = getpwuid(getuid());
-
-    const char *homedir = pw->pw_dir;
-
-    std::string str = *homedir + "/";
-    
-    std::cout << str << "Test" << std::endl;
+    // struct passwd *pw = getpwuid(getuid());
+    // const char *homedir = pw->pw_dir;
+    // std::string str = homedir;
+    // str += "/";
+    // std::cout << str << "Test" << std::endl;
 
     return 0;
 }
