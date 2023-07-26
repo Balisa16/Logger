@@ -37,9 +37,7 @@ private:
     bool combo_msg;
     void resume();
     std::string getLvl(LogLevel lvl = LogLevel::INFO);
-    std::string cust_printf(const char *format, ...);
-    void write_log(const char* format, va_list args);
-    void show_log(const char* format, va_list args);
+    std::string cust_printf(const char *format, va_list args);
 public:
     Logger(std::string filename, FileType type = FileType::TXT);
     Logger();
@@ -158,27 +156,23 @@ inline std::string Logger::getLvl(LogLevel lvl)
     return lvl_string;
 }
 
-inline std::string Logger::cust_printf(const char *format, ...)
+inline std::string Logger::cust_printf(const char *format, va_list args)
 {
-    char formattedString[5000];
-    va_list args;
-    va_start(args, format);
-    vsprintf(formattedString, format, args);
-    va_end(args);
-    return formattedString;
-}
-
-inline void Logger::write_log(const char *format, va_list args)
-{
-    std::string msg;
-    char formattedString[5000];
-    va_start(test, format);
+    char buffer[5000];
     vsprintf(buffer, format, args);
     va_end(args);
+    return buffer;
 }
+
 
 inline void Logger::write(const char *format, LogLevel level, ...)
 {
+    va_list args;
+    va_start(args, format);
+    Logger logger;
+    std::string msg = cust_printf(format, args);
+    va_end(args);
+
     line_counter++;
     std::string header = getLvl(level);
     std::time_t currentTime = std::time(nullptr);
@@ -215,11 +209,16 @@ inline void Logger::write(const char *format, LogLevel level, ...)
 
 inline void Logger::show(const char *format, LogLevel level, ...)
 {
+    va_list args;
+    va_start(args, format);
+    Logger logger;
+    std::string msg = cust_printf(format, args);
+    va_end(args);
+
     std::string header = getLvl(level);
     std::time_t currentTime = std::time(nullptr);
     char timeString[100];
     std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
-    // std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
     header += ' ';
     header += timeString;
     header += ' ';
@@ -251,15 +250,63 @@ inline void Logger::show(const char *format, LogLevel level, ...)
 
 inline void Logger::write_show(const char *format, LogLevel level, ...)
 {
-    va_list args;
-    va_start(args, level);
-    write_log(level, format, args);
-    va_end(args);
-
     combo_msg = true;
-    write(format, level, args);
-    show(format, level, args);
-    combo_msg = false;
+
+    va_list args;
+    va_start(args, format);
+    Logger logger;
+    std::string msg = cust_printf(format, args);
+    va_end(args);
+    
+    line_counter++;
+    std::string header = getLvl(level);
+    std::time_t currentTime = std::time(nullptr);
+    char timeString[100];
+
+    {
+        std::string separator = "   ";
+        if(type == FileType::CSV)
+            separator = ',';
+        header += separator;
+        header += std::to_string(line_counter);
+        header += separator;
+        std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
+        header += timeString;
+        header += separator;
+        std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
+
+        header += std::to_string(elapsed_seconds.count());
+        header += separator + msg;
+        writer << header << '\n';
+    }
+    {
+        std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
+        header += ' ';
+        header += timeString;
+        header += ' ';
+
+
+        std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
+        int int_duration = elapsed_seconds.count();
+        header += std::to_string(int_duration);
+        header += "s : " + msg;
+
+        std::cout << header << '\n';
+    }
+    switch (level)
+    {
+    case LogLevel::INFO:
+        info_msg++;
+        break;
+    case LogLevel::WARNING:
+        warn_msg++;
+        break;
+    case LogLevel::ERROR:
+        err_msg++;
+        break;
+    default:
+        break;
+    }
 }
 
 inline void Logger::finish()
