@@ -9,6 +9,9 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <boost/filesystem.hpp>
+#include <stdio.h>
+#include <stdarg.h>
+
 
 enum class LogLevel {
     INFO,
@@ -34,14 +37,15 @@ private:
     bool combo_msg;
     void resume();
     std::string getLvl(LogLevel lvl = LogLevel::INFO);
+    std::string cust_printf(const char *format, ...);
 public:
     Logger(std::string filename, FileType type = FileType::TXT);
     Logger();
     void init(std::string filename, FileType type = FileType::TXT);
     void start();
-    void write(std::string msg, LogLevel level = LogLevel::INFO);
-    void show(std::string msg, LogLevel level = LogLevel::INFO);
-    void write_show(std::string msg, LogLevel level = LogLevel::INFO);
+    void write(std::string msg, LogLevel level, ...);
+    void show(std::string msg, LogLevel level, ...);
+    void write_show(std::string msg, LogLevel level, ...);
     void finish();
     ~Logger();
 };
@@ -152,7 +156,17 @@ inline std::string Logger::getLvl(LogLevel lvl)
     return lvl_string;
 }
 
-inline void Logger::write(std::string msg, LogLevel level)
+inline std::string Logger::cust_printf(const char *format, ...)
+{
+    char formattedString[5000];
+    va_list args;
+    va_start(args, format);
+    vsprintf(formattedString, format, args);
+    va_end(args);
+    return formattedString;
+}
+
+inline void Logger::write(std::string msg, LogLevel level, ...)
 {
     line_counter++;
     std::string header = getLvl(level);
@@ -188,7 +202,7 @@ inline void Logger::write(std::string msg, LogLevel level)
     }
 }
 
-inline void Logger::show(std::string msg, LogLevel level)
+inline void Logger::show(std::string msg, LogLevel level, ...)
 {
     std::string header = getLvl(level);
     std::time_t currentTime = std::time(nullptr);
@@ -224,7 +238,7 @@ inline void Logger::show(std::string msg, LogLevel level)
         }
 }
 
-inline void Logger::write_show(std::string msg, LogLevel level)
+inline void Logger::write_show(std::string msg, LogLevel level, ...)
 {
     combo_msg = true;
     write(msg, level);
