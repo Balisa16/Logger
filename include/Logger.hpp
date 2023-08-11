@@ -35,7 +35,6 @@ private:
     std::ofstream writer;
     uint16_t info_msg, warn_msg, err_msg;
     bool combo_msg;
-    std::string print_str_temp;
     void resume();
     std::string getLvl(LogLevel lvl = LogLevel::INFO);
     std::string cust_printf(const char *format, va_list args);
@@ -63,16 +62,11 @@ inline void Logger::resume()
 
     std::chrono::duration<double> elapsed_seconds = stop_time - start_time;
 
-    std::string temp_str1 = start_str;
-    std::string temp_str2 = stop_str;
-
-    print_str_temp = "echo -e \"${NORMAL}Flight Resume :\n\tStart Time\t: " + temp_str1 +
-        "\n\tStop Time\t: " + temp_str2 +
-        "\n\tFlight Duration\t: " + std::to_string(elapsed_seconds.count()) + " seconds\nErrors\t\t: " + std::to_string(err_msg) + 
-        " message\nWarnings\t: " + std::to_string(warn_msg) +
-        " message\nInformations\t: " + std::to_string(info_msg) + " message\n\"";
-    
-    system(print_str_temp.c_str());
+    std::cout << "\n\n\\033[34m\\033[1mFlight Resume :\\033[0m\n\tStart Time\t: " << start_str << 
+        "\n\tStop Time\t: " << stop_str << 
+        "\n\tFlight Duration\t: " << std::to_string(elapsed_seconds.count()) << " seconds\nErrors\t\t: " << err_msg << 
+        " message\nWarnings\t: " << warn_msg <<
+        " message\nInformations\t: " << info_msg << " message\n";
 }
 
 Logger::Logger(std::string filename, FileType type)
@@ -96,10 +90,9 @@ inline void Logger::init(std::string filename, FileType type)
     bool is_exist = boost::filesystem::exists(temp_1);
 
     if(!is_exist){
-        print_str_temp = "echo -e \"${BLUE}Create folder " + flight_dir + " in " + home_dir + "\"";
-        temp_1 = "mkdir " + home_dir + "/'" + flight_dir +"'${NORMAL}";
+        std::cout << "Create folder " + flight_dir + " in " + home_dir << std::endl;
+        temp_1 = "mkdir " + home_dir + "/'" + flight_dir +"'";
         system(temp_1.c_str());
-        system(print_str_temp.c_str());
     }
 
     // Set file type
@@ -114,8 +107,7 @@ inline void Logger::init(std::string filename, FileType type)
     temp_1 = temp_filedir + filename + file_ext;
     if(boost::filesystem::exists(temp_1.c_str()))
     {
-        print_str_temp = "echo -e \"${YELLOW}File : " + temp_1 + " already exist.${NORMAL}\"";
-        system(print_str_temp.c_str());
+        std::cout << "File : " << temp_1 << " already exist." << std::endl;
         int file_idx = 1;
         temp_1 = temp_filedir + filename + "-" + std::to_string(file_idx) + file_ext;
         while (boost::filesystem::exists(temp_1.c_str()))
@@ -148,13 +140,13 @@ inline std::string Logger::getLvl(LogLevel lvl)
     switch (lvl)
     {
     case LogLevel::INFO:
-        lvl_string += "\\033[32mINFO \\033[0m";
+        lvl_string += "\\033[32m[INFO ]\\033[37m";
         break;
     case LogLevel::WARNING:
-        lvl_string += "\\033[33mWARN \\033[0m";
+        lvl_string += "\\033[33mWARN ]\\033[37m";
         break;
     case LogLevel::ERROR:
-        lvl_string += "\\033[31mERROR \\033[0m";
+        lvl_string += "\\033[31mERROR]\\033[37m";
         break;
     
     default:
@@ -223,7 +215,7 @@ inline void Logger::show(LogLevel level, const char *format, ...)
     std::string msg = cust_printf(format, args);
     va_end(args);
 
-    std::string header = "echo -e \"" + getLvl(level);
+    std::string header = getLvl(level);
     std::time_t currentTime = std::time(nullptr);
     char timeString[100];
     std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
@@ -235,9 +227,9 @@ inline void Logger::show(LogLevel level, const char *format, ...)
     std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
     int int_duration = elapsed_seconds.count();
     header += std::to_string(int_duration);
-    header += "s : " + msg + "\"";
+    header += "s : " + msg;
 
-    system(header.c_str());
+    std::cout << header << '\n';
 
     if(!combo_msg)
         switch (level)
@@ -287,8 +279,7 @@ inline void Logger::write_show(LogLevel level, const char *format, ...)
         header += separator + msg;
         writer << header << '\n';
     }
-
-    header = "echo '" + getLvl(level);
+    header = getLvl(level);
     {
         std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
         header += ' ';
@@ -299,10 +290,9 @@ inline void Logger::write_show(LogLevel level, const char *format, ...)
         std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
         int int_duration = elapsed_seconds.count();
         header += std::to_string(int_duration);
-        header += "s : " + msg + "'";
-        print_str_temp = header;
-        system(print_str_temp.c_str());
-        // std::cout << header << '\n';
+        header += "s : " + msg;
+
+        std::cout << header << '\n';
     }
     switch (level)
     {
