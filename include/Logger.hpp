@@ -51,7 +51,7 @@ public:
     void init(std::string filename, FileType type = FileType::TXT);
 
     /**
-     * @brief Starting Logger
+     * @brief Starting Logger System
      * 
      */
     void start();
@@ -90,7 +90,7 @@ public:
     void write_show(LogLevel level, const char *format, ...);
 
     /**
-     * @brief Finished Logger system.
+     * @brief Finished Logger System.
      * 
      */
     void finish();
