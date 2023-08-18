@@ -41,11 +41,58 @@ private:
 public:
     Logger(std::string filename, FileType type = FileType::TXT);
     Logger();
+
+    /**
+     * @brief Initialize filename and type of file
+     * 
+     * @param filename  Filename
+     * @param type      Type of file CSV or TXT
+     */
     void init(std::string filename, FileType type = FileType::TXT);
+
+    /**
+     * @brief Starting Logger
+     * 
+     */
     void start();
+
+    /**
+     * @brief Write message into file without showing message into terminal
+     * 
+     * @param level     Message Level (ERROR, WARNING, INFO).
+     * @param format    Message format
+     * @param ...       Additional of message variable
+     * 
+     * @note Message format same as printf in C.
+     */
     void write(LogLevel level, const char *format, ...);
+
+    /**
+     * @brief           Just showing message into terminal without write in logger file.
+     * 
+     * @param level     Message Level (ERROR, WARNING, INFO).
+     * @param format    Message format
+     * @param ...       Additional of message variable
+     * 
+     * @note Message format same as printf in C.
+     */
     void show(LogLevel level, const char *format, ...);
+
+    /**
+     * @brief           Write message into logger file and show up message into terminal.
+     * 
+     * @param level     Message Level (ERROR, WARNING, INFO).
+     * @param format    Message format
+     * @param ...       Additional of message variable
+     * 
+     * @note Message format same as printf in C.
+     */
     void write_show(LogLevel level, const char *format, ...);
+
+    /**
+     * @brief Finished Logger system.
+     * 
+     */
     void finish();
     ~Logger();
 };
@@ -62,7 +109,7 @@ inline void Logger::resume()
 
     std::chrono::duration<double> elapsed_seconds = stop_time - start_time;
 
-    std::cout << "\n\n\\033[34m\\033[1mFlight Resume :\\033[0m\n\tStart Time\t: " << start_str << 
+    std::cout << "\n\n\033[34m\033[1mFlight Resume :\033[0m\n\tStart Time\t: " << start_str << 
         "\n\tStop Time\t: " << stop_str << 
         "\n\tFlight Duration\t: " << std::to_string(elapsed_seconds.count()) << " seconds\nErrors\t\t: " << err_msg << 
         " message\nWarnings\t: " << warn_msg <<
@@ -136,23 +183,22 @@ inline void Logger::start()
 
 inline std::string Logger::getLvl(LogLevel lvl)
 {
-    std::string lvl_string = "[";
+    std::string lvl_string = "";
     switch (lvl)
     {
     case LogLevel::INFO:
-        lvl_string += "\\033[32m[INFO ]\\033[37m";
+        lvl_string += "\033[32m[INFO ]\033[37m";
         break;
     case LogLevel::WARNING:
-        lvl_string += "\\033[33mWARN ]\\033[37m";
+        lvl_string += "\033[33m[WARN ]\033[37m";
         break;
     case LogLevel::ERROR:
-        lvl_string += "\\033[31mERROR]\\033[37m";
+        lvl_string += "\033[31m[ERROR]\033[37m";
         break;
     
     default:
         break;
     }
-    lvl_string += "]";
     return lvl_string;
 }
 
