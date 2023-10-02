@@ -18,10 +18,17 @@ add_library(${PROJECT_NAME} SHARED
     src/Logger.cc
     include/Logger.hpp)
 
-add_executable(test1 test/test.cc)
+install(TARGETS ${PROJECT_NAME}
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
+
+install(FILES include/Logger.hpp DESTINATION include)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
-
+add_executable(test1 test/test.cc)
 target_link_libraries(test1 PRIVATE 
     ${PROJECT_NAME}
     Boost::system 

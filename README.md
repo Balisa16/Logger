@@ -1,3 +1,53 @@
 # Logger
 
 C++ Logger file. It's actually same as ROS_INFO(), ROS_WARN() and ROS_ERROR() in ROS system. But in this project message not just displayed but also write in a file which can be text (\*.txt) or csv (\*.csv)
+
+## Build
+```
+git clone https://github.com/Balisa16/Logger.git logger
+cd logger
+mkdir build && cd build
+cmake .. && make -j4
+```
+If you want to install into your local libraries
+```
+sudo make install
+```
+
+## Testing
+Without CMake
+```
+g++ -o test test.cpp -I/usr/local/include -L/usr/local/lib -Wl,-rpath=/usr/local/lib -lLogger -lboost_system -lboost_filesystem
+```
+With CMakeList
+```
+cmake_minimum_required(VERSION 3.0)
+
+project(TestLogger)
+
+set(CMAKE_CXX_STANDARD 11)
+
+find_package(Boost REQUIRED COMPONENTS system filesystem)
+
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    /usr/local/include
+    ${Boost_INCLUDE_DIRS}
+)
+
+link_directories(/usr/local/lib)
+
+add_executable(test test.cpp)
+
+target_link_libraries(test PRIVATE 
+    Logger
+    Boost::system
+    Boost::filesystem
+)
+
+set_target_properties(test PROPERTIES 
+    INSTALL_RPATH "/usr/local/lib"
+    BUILD_WITH_INSTALL_RPATH ON
+)
+
+```
