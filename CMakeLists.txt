@@ -13,15 +13,16 @@ include_directories(
     ${Boost_INCLUDE_DIRS}
 )
 
-// set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 add_library(${PROJECT_NAME} SHARED
     src/Logger.cc
     include/Logger.hpp)
 
+add_executable(test1 test/test.cc)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
 
-add_executable(test1 test/test.cpp)
-target_link_libraries(test1
+target_link_libraries(test1 PRIVATE 
     ${PROJECT_NAME}
     Boost::system 
     Boost::filesystem)

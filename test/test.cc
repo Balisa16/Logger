@@ -1,6 +1,8 @@
 #include <Logger.hpp>
 #include <thread>
 
+using namespace EMIRO;
+
 int main()
 {
     Logger lg;
