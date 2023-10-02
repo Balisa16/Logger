@@ -6,22 +6,22 @@ set(CMAKE_CXX_STANDARD 11)
 
 find_package(Boost REQUIRED COMPONENTS system filesystem)
 
-# Add the executable target and its source files
-add_executable(test1
-    src/test1.cpp
-)
-
-add_executable(test2
-    src/test2.cpp
-)
-
-# Include directories for the target
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${Boost_INCLUDE_DIRS}
 )
 
-target_link_libraries(test1 PRIVATE Boost::system Boost::filesystem)
-target_link_libraries(test2 PRIVATE Boost::system Boost::filesystem)
+// set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+add_library(${PROJECT_NAME} SHARED
+    src/Logger.cc
+    include/Logger.hpp)
 
-# Optional: Find and link against the Boost library
-# If you have installed Boost to a custom location, you may need to set BOOST_ROOT.
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
+
+add_executable(test1 test/test.cpp)
+target_link_libraries(test1
+    ${PROJECT_NAME}
+    Boost::system 
+    Boost::filesystem)
