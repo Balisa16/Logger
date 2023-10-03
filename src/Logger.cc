@@ -119,24 +119,41 @@ namespace EMIRO{
             std::cout << "\033[31mLogger is not initialized.\033[30m\n";
     }
 
-    std::string Logger::getLvl(LogLevel lvl)
+    std::string Logger::getLvl(LogLevel lvl, bool no_color)
     {
         std::string lvl_string = "";
-        switch (lvl)
-        {
-        case LogLevel::INFO:
-            lvl_string += "\033[32m[INFO ]\033[37m";
-            break;
-        case LogLevel::WARNING:
-            lvl_string += "\033[33m[WARN ]\033[37m";
-            break;
-        case LogLevel::ERROR:
-            lvl_string += "\033[31m[ERROR]\033[37m";
-            break;
-        
-        default:
-            break;
-        }
+        if(no_color)
+            switch (lvl)
+            {
+            case LogLevel::INFO:
+                lvl_string += "\033[32m[INFO ]\033[0m";
+                break;
+            case LogLevel::WARNING:
+                lvl_string += "\033[33m[WARN ]\033[0m";
+                break;
+            case LogLevel::ERROR:
+                lvl_string += "\033[31m[ERROR]\033[0m";
+                break;
+            
+            default:
+                break;
+            }
+        else
+            switch (lvl)
+            {
+            case LogLevel::INFO:
+                lvl_string += "INFO";
+                break;
+            case LogLevel::WARNING:
+                lvl_string += "WARN";
+                break;
+            case LogLevel::ERROR:
+                lvl_string += "ERROR";
+                break;
+            
+            default:
+                break;
+            }
         return lvl_string;
     }
 
@@ -144,7 +161,6 @@ namespace EMIRO{
     {
         char buffer[5000];
         vsprintf(buffer, format, args);
-        va_end(args);
         return buffer;
     }
 
@@ -161,7 +177,7 @@ namespace EMIRO{
             va_end(args);
 
             line_counter++;
-            std::string header = getLvl(level);
+            std::string header = getLvl(level, true);
             std::time_t currentTime = std::time(nullptr);
             char timeString[100];
             std::string separator = "   ";
@@ -261,7 +277,6 @@ namespace EMIRO{
             std::string header = getLvl(level);
             std::time_t currentTime = std::time(nullptr);
             char timeString[100];
-
             {
                 std::string separator = "   ";
                 if(type == FileType::CSV)
@@ -280,7 +295,7 @@ namespace EMIRO{
                 header += separator + msg;
                 writer << header << '\n';
             }
-            header = getLvl(level);
+            header = getLvl(level, true);
             {
                 std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
                 header += ' ';

@@ -11,7 +11,6 @@
 #include <boost/filesystem.hpp>
 #include <stdio.h>
 #include <stdarg.h>
-#include <thread>
 #include <mutex>
 
 namespace EMIRO
@@ -39,7 +38,7 @@ namespace EMIRO
         uint16_t info_msg, warn_msg, err_msg;
         bool combo_msg;
         void resume();
-        std::string getLvl(LogLevel lvl = LogLevel::INFO);
+        std::string getLvl(LogLevel lvl = LogLevel::INFO, bool no_color = false);
         std::string cust_printf(const char *format, va_list args);
         bool check_write();
 
