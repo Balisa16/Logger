@@ -19,6 +19,10 @@ int main()
     
     lg.finish();
 
+    lg.start();
+    lg.write_show(LogLevel::INFO, "Open 2");
+    lg.finish();
+
 
     // struct passwd *pw = getpwuid(getuid());
     // const char *home_char = pw->pw_dir;

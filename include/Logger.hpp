@@ -13,7 +13,6 @@
 #include <stdarg.h>
 #include <thread>
 #include <mutex>
-#include <vector>
 
 namespace EMIRO
 {   
@@ -42,15 +41,10 @@ namespace EMIRO
         void resume();
         std::string getLvl(LogLevel lvl = LogLevel::INFO);
         std::string cust_printf(const char *format, va_list args);
+        bool check_write();
 
         std::mutex mtx;
-        std::bool is_init = false;
-
-        // async function
-        void write_async(LogLevel level, const char *format, ...);
-        void show_async(LogLevel level, const char *format, ...);
-        void write_show_async(LogLevel level, const char *format, ...);
-
+        bool is_init = false, is_start = false;
     public:
         Logger(std::string filename, FileType type = FileType::TXT);
         Logger();
@@ -67,7 +61,7 @@ namespace EMIRO
          * @brief Starting Logger System
          * 
          */
-        void start();
+        void start(bool reset_prev_counter = false);
 
         /**
          * @brief Write message into file without showing message into terminal

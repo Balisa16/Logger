@@ -11,6 +11,18 @@ namespace EMIRO{
         init(filename, type);
     }
 
+    bool Logger::check_write()
+    {
+        if(is_init && is_start)
+            return true;
+        else if(!is_init)
+            std::cout << "\033[31mLogger is not initialized.";
+        else
+            std::cout << "\033[33mLogger is not activated.";
+        std::cout << "\033[30m\n";
+        return false;
+    }
+
     void Logger::resume()
     {
         std::time_t time = std::chrono::system_clock::to_time_t(start_time);
@@ -23,17 +35,18 @@ namespace EMIRO{
 
         std::chrono::duration<double> elapsed_seconds = stop_time - start_time;
 
-        std::cout << "\n\n\033[34m\033[1mFlight Resume :\033[0m\n\tStart Time\t: " << start_str << 
+        std::cout << "\n\033[34m\033[1mFlight Resume :\033[0m\n\tStart Time\t: " << start_str << 
             "\n\tStop Time\t: " << stop_str << 
             "\n\tFlight Duration\t: " << std::to_string(elapsed_seconds.count()) << " seconds\nErrors\t\t: " << err_msg << 
             " message\nWarnings\t: " << warn_msg <<
-            " message\nInformations\t: " << info_msg << " message\n";
+            " message\nInformations\t: " << info_msg << " message\n\n";
     }
-
 
     void Logger::init(std::string filename, FileType type)
     {
-        if(!is_init){
+        std::lock_guard<std::mutex> lg(mtx);
+        if(!is_init)
+        {
             struct passwd *pw = getpwuid(getuid());
             const char *home_char = pw->pw_dir;
             std::string home_dir = home_char;
@@ -78,18 +91,32 @@ namespace EMIRO{
             combo_msg = false;
 
             is_init = true;
-        }else{
-            std
         }
     }
 
-    void Logger::start()
+    void Logger::start(bool reset_prev_counter)
     {
-        start_time = std::chrono::system_clock::now();
-        writer.open(this->full_filename);
-        if(type == FileType::CSV)
-            writer << "Level,Id,Datetime,Flight Time(s),Message\n";
-        line_counter = 0;
+        std::lock_guard<std::mutex> lg(mtx);
+        if(is_init){
+            if(!is_start)
+            {
+                if(reset_prev_counter)
+                {
+                    warn_msg = 0;
+                    info_msg = 0;
+                    err_msg = 0;
+                }
+                start_time = std::chrono::system_clock::now();
+                writer.open(this->full_filename);
+                if(type == FileType::CSV)
+                    writer << "Level,Message Id,Datetime (yyyy-mm-dd),Flight Time(s),Message\n";
+                line_counter = 0;
+                is_start = true;
+            }
+            else
+                std::cout << "\033[33mLogger is already activated.\033[30m\n";
+        }else
+            std::cout << "\033[31mLogger is not initialized.\033[30m\n";
     }
 
     std::string Logger::getLvl(LogLevel lvl)
@@ -121,143 +148,38 @@ namespace EMIRO{
         return buffer;
     }
 
+
     void Logger::write(LogLevel level, const char *format, ...)
     {
         // Lock mutex
-        std::lock_guard(mtx);
+        std::lock_guard<std::mutex> lg(mtx);
 
-        va_list args;
-        va_start(args, format);
-        Logger logger;
-        std::string msg = cust_printf(format, args);
-        va_end(args);
+        if(check_write()){
+            va_list args;
+            va_start(args, format);
+            std::string msg = cust_printf(format, args);
+            va_end(args);
 
-        line_counter++;
-        std::string header = getLvl(level);
-        std::time_t currentTime = std::time(nullptr);
-        char timeString[100];
-        std::string separator = "   ";
-        if(type == FileType::CSV)
-            separator = ',';
-        header += separator;
-        header += std::to_string(line_counter);
-        header += separator;
-        std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
-        header += timeString;
-        header += separator;
-        std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
+            line_counter++;
+            std::string header = getLvl(level);
+            std::time_t currentTime = std::time(nullptr);
+            char timeString[100];
+            std::string separator = "   ";
+            if(type == FileType::CSV)
+                separator = ',';
+            header += separator;
+            header += std::to_string(line_counter);
+            header += separator;
+            std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
+            header += timeString;
+            header += separator;
+            
+            std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - start_time;
+            auto ms_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t_elapsed);
+            header += std::to_string(ms_elapsed.count()/1000.0f);
 
-        header += std::to_string(elapsed_seconds.count());
-        header += separator + msg;
-        writer << header << '\n';
-        switch (level)
-        {
-        case LogLevel::INFO:
-            info_msg++;
-            break;
-        case LogLevel::WARNING:
-            warn_msg++;
-            break;
-        case LogLevel::ERROR:
-            err_msg++;
-            break;
-        default:
-            break;
-        }
-    }
-
-    void Logger::show(LogLevel level, const char *format, ...)
-    {
-        auto f_lambda = [this, level, format](va_list args) {
-            show_async(level, format, args);
-        };
-
-        // Use a variadic template to forward the arguments to the lambda function
-        va_list args;
-        va_start(args, format);
-        std::thread s(f_lambda, args);
-        va_end(args);
-        s.join();
-    }
-
-    void Logger::write_show(LogLevel level, const char *format, ...)
-    {
-
-    }
-
-    void Logger::write_async(LogLevel level, const char *format, ...)
-    {
-        // Lock mutex
-        std::lock_guard(mtx);
-
-        va_list args;
-        va_start(args, format);
-        Logger logger;
-        std::string msg = cust_printf(format, args);
-        va_end(args);
-
-        line_counter++;
-        std::string header = getLvl(level);
-        std::time_t currentTime = std::time(nullptr);
-        char timeString[100];
-        std::string separator = "   ";
-        if(type == FileType::CSV)
-            separator = ',';
-        header += separator;
-        header += std::to_string(line_counter);
-        header += separator;
-        std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
-        header += timeString;
-        header += separator;
-        std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
-
-        header += std::to_string(elapsed_seconds.count());
-        header += separator + msg;
-        writer << header << '\n';
-        switch (level)
-        {
-        case LogLevel::INFO:
-            info_msg++;
-            break;
-        case LogLevel::WARNING:
-            warn_msg++;
-            break;
-        case LogLevel::ERROR:
-            err_msg++;
-            break;
-        default:
-            break;
-        }
-    }
-
-    void Logger::show_async(LogLevel level, const char *format, ...)
-    {
-        // Lock mutex
-        std::lock_guard(mtx);
-
-        va_list args;
-        va_start(args, format);
-        Logger logger;
-        std::string msg = cust_printf(format, args);
-        va_end(args);
-
-        std::string header = getLvl(level);
-        std::time_t currentTime = std::time(nullptr);
-        char timeString[100];
-        std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
-        header += ' ';
-        header += timeString;
-        header += ' ';
-
-
-        std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
-        int int_duration = elapsed_seconds.count();
-        header += std::to_string(int_duration);
-        header += "s : " + msg;
-
-        std::cout << header << '\n';
-
-        if(!combo_msg)
+            header += separator + msg;
+            writer << header << '\n';
             switch (level)
             {
             case LogLevel::INFO:
@@ -272,78 +194,134 @@ namespace EMIRO{
             default:
                 break;
             }
+        }
+
     }
 
-    void Logger::write_show_async(LogLevel level, const char *format, ...)
+    void Logger::show(LogLevel level, const char *format, ...)
     {
         // Lock mutex
-        std::lock_guard(mtx);
+        std::lock_guard<std::mutex> lg(mtx);
 
-        combo_msg = true;
+        if(check_write()){
+            va_list args;
+            va_start(args, format);
+            std::string msg = cust_printf(format, args);
+            va_end(args);
 
-        va_list args;
-        va_start(args, format);
-        Logger logger;
-        std::string msg = cust_printf(format, args);
-        va_end(args);
-        
-        line_counter++;
-        std::string header = getLvl(level);
-        std::time_t currentTime = std::time(nullptr);
-        char timeString[100];
-
-        {
-            std::string separator = "   ";
-            if(type == FileType::CSV)
-                separator = ',';
-            header += separator;
-            header += std::to_string(line_counter);
-            header += separator;
-            std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
-            header += timeString;
-            header += separator;
-            std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
-
-            header += std::to_string(elapsed_seconds.count());
-            header += separator + msg;
-            writer << header << '\n';
-        }
-        header = getLvl(level);
-        {
+            std::string header = getLvl(level);
+            std::time_t currentTime = std::time(nullptr);
+            char timeString[100];
             std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
             header += ' ';
             header += timeString;
             header += ' ';
 
+            std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - start_time;
+            auto ms_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t_elapsed);
+            header += std::to_string(ms_elapsed.count()/1000.0f);
 
-            std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
-            int int_duration = elapsed_seconds.count();
-            header += std::to_string(int_duration);
             header += "s : " + msg;
 
             std::cout << header << '\n';
+
+            if(!combo_msg)
+                switch (level)
+                {
+                case LogLevel::INFO:
+                    info_msg++;
+                    break;
+                case LogLevel::WARNING:
+                    warn_msg++;
+                    break;
+                case LogLevel::ERROR:
+                    err_msg++;
+                    break;
+                default:
+                    break;
+                }
         }
-        switch (level)
+    }
+
+    void Logger::write_show(LogLevel level, const char *format, ...)
+    {
+        // Lock mutex
+        std::lock_guard<std::mutex> lg(mtx);
+
+        if(check_write())
         {
-        case LogLevel::INFO:
-            info_msg++;
-            break;
-        case LogLevel::WARNING:
-            warn_msg++;
-            break;
-        case LogLevel::ERROR:
-            err_msg++;
-            break;
-        default:
-            break;
+            combo_msg = true;
+
+            va_list args;
+            va_start(args, format);
+            std::string msg = cust_printf(format, args);
+            va_end(args);
+            
+            line_counter++;
+            std::string header = getLvl(level);
+            std::time_t currentTime = std::time(nullptr);
+            char timeString[100];
+
+            {
+                std::string separator = "   ";
+                if(type == FileType::CSV)
+                    separator = ',';
+                header += separator;
+                header += std::to_string(line_counter);
+                header += separator;
+                std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
+                header += timeString;
+                header += separator;
+                
+                std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - start_time;
+                auto ms_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t_elapsed);
+                header += std::to_string(ms_elapsed.count()/1000.0f);
+
+                header += separator + msg;
+                writer << header << '\n';
+            }
+            header = getLvl(level);
+            {
+                std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
+                header += ' ';
+                header += timeString;
+                header += ' ';
+
+                std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - start_time;
+                auto ms_elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(t_elapsed);
+                header += std::to_string(ms_elapsed.count()/1000.0f);
+
+                header += "s : " + msg;
+
+                std::cout << header << '\n';
+            }
+            switch (level)
+            {
+            case LogLevel::INFO:
+                info_msg++;
+                break;
+            case LogLevel::WARNING:
+                warn_msg++;
+                break;
+            case LogLevel::ERROR:
+                err_msg++;
+                break;
+            default:
+                break;
+            }
         }
     }
 
     void Logger::finish()
     {
-        stop_time = std::chrono::system_clock::now();
-        writer.close();
-        resume();
+        std::lock_guard<std::mutex> lg(mtx);
+        if(check_write())
+        {
+            stop_time = std::chrono::system_clock::now();
+            writer.close();
+            resume();
+            is_start = false;
+        }
     }
 
     Logger::~Logger()
