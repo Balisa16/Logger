@@ -33,48 +33,54 @@ namespace EMIRO{
 
     void Logger::init(std::string filename, FileType type)
     {
-        struct passwd *pw = getpwuid(getuid());
-        const char *home_char = pw->pw_dir;
-        std::string home_dir = home_char;
-        std::string flight_dir = "Flight Log";
-        std::string temp_1 = home_dir + "/" + flight_dir;
+        if(!is_init){
+            struct passwd *pw = getpwuid(getuid());
+            const char *home_char = pw->pw_dir;
+            std::string home_dir = home_char;
+            std::string flight_dir = "Flight Log";
+            std::string temp_1 = home_dir + "/" + flight_dir;
 
-        bool is_exist = boost::filesystem::exists(temp_1);
+            bool is_exist = boost::filesystem::exists(temp_1);
 
-        if(!is_exist){
-            std::cout << "Create folder " + flight_dir + " in " + home_dir << std::endl;
-            temp_1 = "mkdir " + home_dir + "/'" + flight_dir +"'";
-            system(temp_1.c_str());
-        }
-
-        // Set file type
-        this->type = type;
-
-        std::string file_ext = ".csv";
-        if(type == FileType::TXT)
-            file_ext = ".txt";
-
-        std::string temp_filedir = home_dir + "/" + flight_dir +"/";
-        
-        temp_1 = temp_filedir + filename + file_ext;
-        if(boost::filesystem::exists(temp_1.c_str()))
-        {
-            std::cout << "File : " << temp_1 << " already exist." << std::endl;
-            int file_idx = 1;
-            temp_1 = temp_filedir + filename + "-" + std::to_string(file_idx) + file_ext;
-            while (boost::filesystem::exists(temp_1.c_str()))
-            {
-                file_idx++;
-                temp_1 = temp_filedir + filename + "-" + std::to_string(file_idx) + file_ext;
+            if(!is_exist){
+                std::cout << "Create folder " + flight_dir + " in " + home_dir << std::endl;
+                temp_1 = "mkdir " + home_dir + "/'" + flight_dir +"'";
+                system(temp_1.c_str());
             }
+
+            // Set file type
+            this->type = type;
+
+            std::string file_ext = ".csv";
+            if(type == FileType::TXT)
+                file_ext = ".txt";
+
+            std::string temp_filedir = home_dir + "/" + flight_dir +"/";
+            
+            temp_1 = temp_filedir + filename + file_ext;
+            if(boost::filesystem::exists(temp_1.c_str()))
+            {
+                std::cout << "File : " << temp_1 << " already exist." << std::endl;
+                int file_idx = 1;
+                temp_1 = temp_filedir + filename + "-" + std::to_string(file_idx) + file_ext;
+                while (boost::filesystem::exists(temp_1.c_str()))
+                {
+                    file_idx++;
+                    temp_1 = temp_filedir + filename + "-" + std::to_string(file_idx) + file_ext;
+                }
+            }
+            
+            this->full_filename = temp_1;
+            std::cout << "Log file stored in : " << temp_1 << std::endl;
+            info_msg = 0;
+            warn_msg = 0;
+            err_msg = 0;
+            combo_msg = false;
+
+            is_init = true;
+        }else{
+            std
         }
-        
-        this->full_filename = temp_1;
-        std::cout << "Log file stored in : " << temp_1 << std::endl;
-        info_msg = 0;
-        warn_msg = 0;
-        err_msg = 0;
-        combo_msg = false;
     }
 
     void Logger::start()
@@ -115,9 +121,11 @@ namespace EMIRO{
         return buffer;
     }
 
-
     void Logger::write(LogLevel level, const char *format, ...)
     {
+        // Lock mutex
+        std::lock_guard(mtx);
+
         va_list args;
         va_start(args, format);
         Logger logger;
@@ -160,6 +168,73 @@ namespace EMIRO{
 
     void Logger::show(LogLevel level, const char *format, ...)
     {
+        auto f_lambda = [this, level, format](va_list args) {
+            show_async(level, format, args);
+        };
+
+        // Use a variadic template to forward the arguments to the lambda function
+        va_list args;
+        va_start(args, format);
+        std::thread s(f_lambda, args);
+        va_end(args);
+        s.join();
+    }
+
+    void Logger::write_show(LogLevel level, const char *format, ...)
+    {
+
+    }
+
+    void Logger::write_async(LogLevel level, const char *format, ...)
+    {
+        // Lock mutex
+        std::lock_guard(mtx);
+
+        va_list args;
+        va_start(args, format);
+        Logger logger;
+        std::string msg = cust_printf(format, args);
+        va_end(args);
+
+        line_counter++;
+        std::string header = getLvl(level);
+        std::time_t currentTime = std::time(nullptr);
+        char timeString[100];
+        std::string separator = "   ";
+        if(type == FileType::CSV)
+            separator = ',';
+        header += separator;
+        header += std::to_string(line_counter);
+        header += separator;
+        std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
+        header += timeString;
+        header += separator;
+        std::chrono::duration<double> elapsed_seconds = std::chrono::system_clock::now() - start_time;
+
+        header += std::to_string(elapsed_seconds.count());
+        header += separator + msg;
+        writer << header << '\n';
+        switch (level)
+        {
+        case LogLevel::INFO:
+            info_msg++;
+            break;
+        case LogLevel::WARNING:
+            warn_msg++;
+            break;
+        case LogLevel::ERROR:
+            err_msg++;
+            break;
+        default:
+            break;
+        }
+    }
+
+    void Logger::show_async(LogLevel level, const char *format, ...)
+    {
+        // Lock mutex
+        std::lock_guard(mtx);
+
         va_list args;
         va_start(args, format);
         Logger logger;
@@ -199,8 +274,11 @@ namespace EMIRO{
             }
     }
 
-    void Logger::write_show(LogLevel level, const char *format, ...)
+    void Logger::write_show_async(LogLevel level, const char *format, ...)
     {
+        // Lock mutex
+        std::lock_guard(mtx);
+
         combo_msg = true;
 
         va_list args;

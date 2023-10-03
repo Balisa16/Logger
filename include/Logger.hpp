@@ -11,6 +11,9 @@
 #include <boost/filesystem.hpp>
 #include <stdio.h>
 #include <stdarg.h>
+#include <thread>
+#include <mutex>
+#include <vector>
 
 namespace EMIRO
 {   
@@ -39,6 +42,15 @@ namespace EMIRO
         void resume();
         std::string getLvl(LogLevel lvl = LogLevel::INFO);
         std::string cust_printf(const char *format, va_list args);
+
+        std::mutex mtx;
+        std::bool is_init = false;
+
+        // async function
+        void write_async(LogLevel level, const char *format, ...);
+        void show_async(LogLevel level, const char *format, ...);
+        void write_show_async(LogLevel level, const char *format, ...);
+
     public:
         Logger(std::string filename, FileType type = FileType::TXT);
         Logger();
