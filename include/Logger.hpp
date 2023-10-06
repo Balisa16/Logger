@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <mutex>
+#include <thread>
 
 namespace EMIRO
 {   

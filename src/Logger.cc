@@ -1,6 +1,38 @@
 #include <Logger.hpp>
 
 namespace EMIRO{
+    void wait_thread(LoggerStatus& status, std::mutex& mtx, std::chrono::_V2::system_clock::time_point& start_time, std::string message)
+    {
+        std::lock_guard<std::mutex> lg(mtx);
+        std::string _cap = "\033[35m[WAIT ]\033[0m";
+        std::time_t currentTime = std::time(nullptr);
+        char timeString[100];
+        std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
+        _cap += ' ';
+        _cap += timeString;
+        _cap += ' ';
+
+        std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - start_time;
+        auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
+        _cap += std::to_string(ms_elapsed.count()/1000000.0f);
+
+        _cap += "s : " + message + " ";
+
+        std::chrono::_V2::system_clock::time_point start_wait = std::chrono::system_clock::now();
+
+        std::cout << _cap;
+        std::cout.flush();
+        while(status == LoggerStatus::Wait)
+        {
+            std::cout << ".";
+            std::cout.flush();
+        }
+        t_elapsed = std::chrono::system_clock::now() - start_wait;
+        ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
+
+        std::cout << "(OK) " << std::to_string(ms_elapsed.count()/1000000.0f) << " s";
+    }
+
     Logger::Logger()
     {
 
@@ -364,9 +396,18 @@ namespace EMIRO{
             unavailable_msg();
     }
 
-    Logger& wait(std::string wait_msg);
+    Logger& Logger::wait(std::string wait_msg)
+    {
+        status = LoggerStatus::Wait;
+        std::thread th(wait_thread, status, mtx, start_time, wait_msg);
+        return *this;
+    }
 
-    Logger& wait_stop();
+    Logger& Logger::wait_stop()
+    {
+        status = LoggerStatus::Run;
+        return *this;
+    }
 
     Logger::~Logger()
     {
