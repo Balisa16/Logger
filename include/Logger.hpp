@@ -26,24 +26,37 @@ namespace EMIRO
         CSV
     };
 
+    enum class LoggerStatus {
+        None,
+        Init,
+        Run,
+        Wait,
+        Stop,
+    };
+
     class Logger
     {
     private:
         std::chrono::_V2::system_clock::time_point start_time, stop_time;
         std::string full_filename;
         uint64_t line_counter;
+
         LogLevel level;
         FileType type;
+        LoggerStatus status = LoggerStatus::None;
+
         std::ofstream writer;
         uint16_t info_msg, warn_msg, err_msg;
+
         bool combo_msg;
         void resume();
         std::string getLvl(LogLevel lvl = LogLevel::INFO, bool no_color = false);
         std::string cust_printf(const char *format, va_list args);
-        bool check_write();
+        void unavailable_msg();
 
         std::mutex mtx;
         bool is_init = false, is_start = false;
+
     public:
         Logger(std::string filename, FileType type = FileType::TXT);
         Logger();
@@ -100,6 +113,13 @@ namespace EMIRO
          * 
          */
         void finish();
+
+        LoggerStatus get_status();
+
+        Logger& wait(std::string wait_msg);
+
+        Logger& wait_stop();
+
         ~Logger();
     };
 }

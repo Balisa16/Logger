@@ -8,20 +8,16 @@ int main()
 {
     Logger lg;
     lg.init("test", FileType::CSV);
-    lg.start(true);
-    std::vector<std::thread> th_vect = std::vector<std::thread>();
-    for (int i = 0; i < 10; i++)
-    {
-        LogLevel ll = LogLevel::INFO;
-        const char *word = "Message %d";
-        int a = 1;
+    // lg.start(true);
 
-        std::thread th(lg.write_show, ll, word, a);
-        th_vect.push_back(th);
+    for (int i = 1; i <= 1000; i++)
+    {
+        lg.write_show(LogLevel::INFO, "Data %d", i);
+        lg.write_show(LogLevel::WARNING, "Data %d", i);
+        lg.write_show(LogLevel::ERROR, "Data %d", i);
+        // std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
-    for (int i = 0; i < th_vect.size(); ++i)
-        th_vect[i].join();
-    
+
     lg.finish();
     return 0;
 }
