@@ -2,6 +2,9 @@
 
 C++ Logger file. It's actually same as ROS_INFO(), ROS_WARN() and ROS_ERROR() in ROS system. But in this project message not just displayed but also write in a file which can be text (\*.txt) or csv (\*.csv)
 
+## Dependencies
+Boost
+
 ## Build
 ```
 git clone https://github.com/Balisa16/Logger.git logger
@@ -15,13 +18,18 @@ sudo make install
 ```
 
 ## Testing
-Without CMake
+**Check**
+```
+find /usr/local -name libLogger.so
+```
+
+Use logger without CMake
 ```
 g++ -o test test.cpp -I/usr/local/include -L/usr/local/lib -Wl,-rpath=/usr/local/lib -lLogger -lboost_system -lboost_filesystem
 ```
 With CMakeList
 ```
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 
 project(TestLogger)
 
