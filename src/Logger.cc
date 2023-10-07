@@ -133,7 +133,7 @@ namespace EMIRO{
             log_fmt.start_time = std::chrono::system_clock::now();
             writer.open(this->full_filename);
             if(type == FileType::CSV)
-                writer << "Level,Id,Datetime,Duration from Start(s),Message\n";
+                writer << "Level,Id,Date Time,Duration (s),Message\n";
             line_counter = 0;
             is_start = true;
             log_fmt.status = LoggerStatus::Run;
