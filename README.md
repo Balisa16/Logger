@@ -52,17 +52,16 @@ include_directories(
 
 link_directories(/usr/local/lib)
 
-add_executable(test test.cpp)
+add_executable(test1 test.cpp)
 
-target_link_libraries(test PRIVATE 
+target_link_libraries(test1 PRIVATE 
     Logger
     Boost::system
     Boost::filesystem
 )
 
-set_target_properties(test PROPERTIES 
+set_target_properties(test1 PROPERTIES 
     INSTALL_RPATH "/usr/local/lib"
     BUILD_WITH_INSTALL_RPATH ON
 )
-
 ```

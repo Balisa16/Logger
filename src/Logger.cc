@@ -408,6 +408,8 @@ namespace EMIRO{
     Logger& Logger::wait_stop()
     {
         log_fmt.status = LoggerStatus::Run;
+        while(!log_fmt.mtx.try_lock());
+        log_fmt.mtx.unlock();
         return *this;
     }
 

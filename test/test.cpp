@@ -21,7 +21,6 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(4000));
     // Send trigger to stop waiting period of "Something" task
     lg.wait_stop();
-
     lg.finish();
     return 0;
 }
