@@ -31,5 +31,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/test)
 add_executable(test1 test/test.cpp)
 target_link_libraries(test1 PRIVATE 
     ${PROJECT_NAME}
+    pthread
     Boost::system 
     Boost::filesystem)

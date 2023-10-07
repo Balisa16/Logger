@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <mutex>
 #include <thread>
+#include <tuple>
 
 namespace EMIRO
 {   
@@ -41,6 +42,7 @@ namespace EMIRO
         std::chrono::_V2::system_clock::time_point start_time, stop_time;
         std::string full_filename;
         uint64_t line_counter;
+        std::tuple<LoggerStatus&, std::mutex, std::chrono::_V2::system_clock::time_point&, std::string> tuple_thread;
 
         LogLevel level;
         FileType type;
@@ -117,9 +119,9 @@ namespace EMIRO
 
         LoggerStatus get_status();
 
-        Logger& wait(std::string wait_msg);
+        void wait(std::string wait_msg);
 
-        Logger& wait_stop();
+        void wait_stop();
 
         ~Logger();
     };

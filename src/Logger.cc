@@ -26,6 +26,7 @@ namespace EMIRO{
         {
             std::cout << ".";
             std::cout.flush();
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
         t_elapsed = std::chrono::system_clock::now() - start_wait;
         ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
@@ -391,22 +392,22 @@ namespace EMIRO{
             stop_time = std::chrono::system_clock::now();
             writer.close();
             resume();
-            status  == LoggerStatus::Stop;
+            status = LoggerStatus::Stop;
         }else
             unavailable_msg();
     }
 
-    Logger& Logger::wait(std::string wait_msg)
+    void Logger::wait(std::string wait_msg)
     {
         status = LoggerStatus::Wait;
-        std::thread th(wait_thread, status, mtx, start_time, wait_msg);
-        return *this;
+        std::thread th = std::thread(wait_thread, status, mtx, start_time, wait_msg);
+        return;
     }
 
-    Logger& Logger::wait_stop()
+    void Logger::wait_stop()
     {
         status = LoggerStatus::Run;
-        return *this;
+        return;
     }
 
     Logger::~Logger()
