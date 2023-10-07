@@ -13,7 +13,7 @@
 #include <stdarg.h>
 #include <mutex>
 #include <thread>
-#include <tuple>
+#include <exception>
 
 namespace EMIRO
 {   
@@ -36,17 +36,23 @@ namespace EMIRO
         Stop,
     };
 
+    typedef struct{
+        LoggerStatus status;
+        std::mutex mtx;
+        std::chrono::_V2::system_clock::time_point start_time;
+        std::string message;
+    }LoggerFormat;
+
     class Logger
     {
     private:
         std::chrono::_V2::system_clock::time_point start_time, stop_time;
         std::string full_filename;
         uint64_t line_counter;
-        std::tuple<LoggerStatus&, std::mutex, std::chrono::_V2::system_clock::time_point&, std::string> tuple_thread;
 
+        LoggerFormat log_fmt;
         LogLevel level;
         FileType type;
-        LoggerStatus status = LoggerStatus::None;
 
         std::ofstream writer;
         uint16_t info_msg, warn_msg, err_msg;
@@ -119,9 +125,9 @@ namespace EMIRO
 
         LoggerStatus get_status();
 
-        void wait(std::string wait_msg);
+        Logger& wait(std::string wait_msg);
 
-        void wait_stop();
+        Logger& wait_stop();
 
         ~Logger();
     };

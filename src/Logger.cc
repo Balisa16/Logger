@@ -1,28 +1,28 @@
 #include <Logger.hpp>
 
 namespace EMIRO{
-    void wait_thread(LoggerStatus& status, std::mutex& mtx, std::chrono::_V2::system_clock::time_point& start_time, std::string message)
+    void wait_thread(LoggerFormat *format)
     {
-        std::lock_guard<std::mutex> lg(mtx);
+        std::lock_guard<std::mutex> lg(format->mtx);
         std::string _cap = "\033[35m[WAIT ]\033[0m";
-        std::time_t currentTime = std::time(nullptr);
-        char timeString[100];
-        std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
+        std::time_t _current_time = std::time(nullptr);
+        char _time_char[100];
+        std::strftime(_time_char, sizeof(_time_char), "%H:%M:%S", std::localtime(&_current_time));
         _cap += ' ';
-        _cap += timeString;
+        _cap += _time_char;
         _cap += ' ';
 
-        std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - start_time;
+        std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - format->start_time;
         auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
         _cap += std::to_string(ms_elapsed.count()/1000000.0f);
 
-        _cap += "s : " + message + " ";
+        _cap += "s : " + format->message + " ";
 
         std::chrono::_V2::system_clock::time_point start_wait = std::chrono::system_clock::now();
 
         std::cout << _cap;
         std::cout.flush();
-        while(status == LoggerStatus::Wait)
+        while(format->status == LoggerStatus::Wait)
         {
             std::cout << ".";
             std::cout.flush();
@@ -31,28 +31,28 @@ namespace EMIRO{
         t_elapsed = std::chrono::system_clock::now() - start_wait;
         ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
 
-        std::cout << "(OK) " << std::to_string(ms_elapsed.count()/1000000.0f) << " s";
+        std::cout << " (OK) " << std::to_string(ms_elapsed.count()/1000000.0f) << " s\n";
     }
 
     Logger::Logger()
     {
-
+        log_fmt.status = LoggerStatus::None;
     }
 
     Logger::Logger(std::string filename, FileType type)
     {
-        status  == LoggerStatus::None;
+        log_fmt.status = LoggerStatus::None;
         init(filename, type);
     }
 
     LoggerStatus Logger::get_status()
     {
-        return status;
+        return log_fmt.status;
     }
 
     void Logger::resume()
     {
-        std::time_t time = std::chrono::system_clock::to_time_t(start_time);
+        std::time_t time = std::chrono::system_clock::to_time_t(log_fmt.start_time);
         char start_str[100];
         std::strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
 
@@ -60,7 +60,7 @@ namespace EMIRO{
         char stop_str[100];
         std::strftime(stop_str, sizeof(stop_str), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
 
-        std::chrono::duration<double> elapsed_seconds = stop_time - start_time;
+        std::chrono::duration<double> elapsed_seconds = stop_time - log_fmt.start_time;
 
         std::cout << "\n\033[34m\033[1mFlight Resume :\033[0m\n\tStart Time\t: " << start_str << 
             "\n\tStop Time\t: " << stop_str << 
@@ -71,8 +71,8 @@ namespace EMIRO{
 
     void Logger::init(std::string filename, FileType type)
     {
-        std::lock_guard<std::mutex> lg(mtx);
-        if(status  == LoggerStatus::None)
+        std::lock_guard<std::mutex> lg(log_fmt.mtx);
+        if(log_fmt.status  == LoggerStatus::None)
         {
             struct passwd *pw = getpwuid(getuid());
             const char *home_char = pw->pw_dir;
@@ -80,13 +80,12 @@ namespace EMIRO{
             std::string flight_dir = "Flight Log";
             std::string temp_1 = home_dir + "/" + flight_dir;
 
-            bool is_exist = boost::filesystem::exists(temp_1);
-
-            if(!is_exist){
-                std::cout << "Create folder " + flight_dir + " in " + home_dir << std::endl;
-                temp_1 = "mkdir " + home_dir + "/'" + flight_dir +"'";
-                system(temp_1.c_str());
-            }
+            if(!boost::filesystem::exists(temp_1))
+                if(!boost::filesystem::create_directory(temp_1))
+                {
+                    std::cout << "\033[31m\033[1mERROR\t: \033[0m Failed to create \"" << temp_1 << "\"\n ";
+                    throw;
+                }
 
             // Set file type
             this->type = type;
@@ -100,7 +99,7 @@ namespace EMIRO{
             temp_1 = temp_filedir + filename + file_ext;
             if(boost::filesystem::exists(temp_1.c_str()))
             {
-                std::cout << "File : " << temp_1 << " already exist." << std::endl;
+                std::cout << "\033[34m\033[1mFile\t: \033[0m" << temp_1 << " \033[32m\033[3m[already exist]\033[0m" << std::endl;
                 int file_idx = 1;
                 temp_1 = temp_filedir + filename + "-" + std::to_string(file_idx) + file_ext;
                 while (boost::filesystem::exists(temp_1.c_str()))
@@ -111,19 +110,19 @@ namespace EMIRO{
             }
             
             this->full_filename = temp_1;
-            std::cout << "Log file stored in : " << temp_1 << std::endl;
+            std::cout << "\033[34m\033[1mStored\t: \033[0m" << temp_1 << std::endl << std::endl;
             info_msg = 0;
             warn_msg = 0;
             err_msg = 0;
             combo_msg = false;
-            status = LoggerStatus::Init;
+            log_fmt.status = LoggerStatus::Init;
         }
     }
 
     void Logger::start(bool reset_prev_counter)
     {
-        std::lock_guard<std::mutex> lg(mtx);
-        if(status  == LoggerStatus::Init || status  == LoggerStatus::Stop)
+        std::lock_guard<std::mutex> lg(log_fmt.mtx);
+        if(log_fmt.status  == LoggerStatus::Init || log_fmt.status  == LoggerStatus::Stop)
         {
             if(reset_prev_counter)
             {
@@ -131,17 +130,17 @@ namespace EMIRO{
                 info_msg = 0;
                 err_msg = 0;
             }
-            start_time = std::chrono::system_clock::now();
+            log_fmt.start_time = std::chrono::system_clock::now();
             writer.open(this->full_filename);
             if(type == FileType::CSV)
-                writer << "Level,Message Id,Datetime (yyyy-mm-dd),Flight Time(s),Message\n";
+                writer << "Level,Message Id,Datetime (yyyy-MM-dd hh:mm:ss),Flight Time(s),Message\n";
             line_counter = 0;
             is_start = true;
-            status = LoggerStatus::Run;
+            log_fmt.status = LoggerStatus::Run;
         }
-        else if(status  == LoggerStatus::Run)
+        else if(log_fmt.status  == LoggerStatus::Run)
             std::cout << "\033[33mLogger is already activated.\033[30m\n";
-        else if(status  == LoggerStatus::None)
+        else if(log_fmt.status  == LoggerStatus::None)
             std::cout << "\033[31mLogger is not initialized.\033[30m\n";
         else
             std::cout << "\033[33mLogger in Waiting Mode.\033[30m\n";
@@ -195,7 +194,7 @@ namespace EMIRO{
     void Logger::unavailable_msg()
     {
         std::string _msg = "\033[31m[Unavailabe]\033[0m Logger Status : ";
-        switch(status)
+        switch(log_fmt.status)
         {
         case LoggerStatus::None:
             _msg += "None";
@@ -222,9 +221,9 @@ namespace EMIRO{
     void Logger::write(LogLevel level, const char *format, ...)
     {
         // Lock mutex
-        std::lock_guard<std::mutex> lg(mtx);
+        std::lock_guard<std::mutex> lg(log_fmt.mtx);
 
-        if(status  == LoggerStatus::Run)
+        if(log_fmt.status  == LoggerStatus::Run)
         {
             va_list args;
             va_start(args, format);
@@ -245,7 +244,7 @@ namespace EMIRO{
             header += timeString;
             header += separator;
             
-            std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - start_time;
+            std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - log_fmt.start_time;
             auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
             header += std::to_string(ms_elapsed.count()/1000000.0f);
 
@@ -272,9 +271,9 @@ namespace EMIRO{
     void Logger::show(LogLevel level, const char *format, ...)
     {
         // Lock mutex
-        std::lock_guard<std::mutex> lg(mtx);
+        std::lock_guard<std::mutex> lg(log_fmt.mtx);
 
-        if(status  == LoggerStatus::Run){
+        if(log_fmt.status  == LoggerStatus::Run){
             va_list args;
             va_start(args, format);
             std::string msg = cust_printf(format, args);
@@ -288,7 +287,7 @@ namespace EMIRO{
             header += timeString;
             header += ' ';
 
-            std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - start_time;
+            std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - log_fmt.start_time;
             auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
             header += std::to_string(ms_elapsed.count()/1000000.0f);
 
@@ -318,9 +317,9 @@ namespace EMIRO{
     void Logger::write_show(LogLevel level, const char *format, ...)
     {
         // Lock mutex
-        std::lock_guard<std::mutex> lg(mtx);
+        std::lock_guard<std::mutex> lg(log_fmt.mtx);
 
-        if(status  == LoggerStatus::Run)
+        if(log_fmt.status  == LoggerStatus::Run)
         {
             combo_msg = true;
 
@@ -344,7 +343,7 @@ namespace EMIRO{
                 header += timeString;
                 header += separator;
                 
-                std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - start_time;
+                std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - log_fmt.start_time;
                 auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
                 header += std::to_string(ms_elapsed.count()/1000000.0f);
 
@@ -358,7 +357,7 @@ namespace EMIRO{
                 header += timeString;
                 header += ' ';
 
-                std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - start_time;
+                std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - log_fmt.start_time;
                 auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
                 header += std::to_string(ms_elapsed.count()/1000000.0f);
 
@@ -386,28 +385,30 @@ namespace EMIRO{
 
     void Logger::finish()
     {
-        std::lock_guard<std::mutex> lg(mtx);
-        if(status  == LoggerStatus::Run)
+        std::lock_guard<std::mutex> lg(log_fmt.mtx);
+        if(log_fmt.status  == LoggerStatus::Run)
         {
             stop_time = std::chrono::system_clock::now();
             writer.close();
             resume();
-            status = LoggerStatus::Stop;
+            log_fmt.status = LoggerStatus::Stop;
         }else
             unavailable_msg();
     }
 
-    void Logger::wait(std::string wait_msg)
+    Logger& Logger::wait(std::string wait_msg)
     {
-        status = LoggerStatus::Wait;
-        std::thread th = std::thread(wait_thread, status, mtx, start_time, wait_msg);
-        return;
+        log_fmt.status = LoggerStatus::Wait;
+        log_fmt.message = wait_msg;
+        std::thread th = std::thread(wait_thread, &log_fmt);
+        th.detach();
+        return *this;
     }
 
-    void Logger::wait_stop()
+    Logger& Logger::wait_stop()
     {
-        status = LoggerStatus::Run;
-        return;
+        log_fmt.status = LoggerStatus::Run;
+        return *this;
     }
 
     Logger::~Logger()
