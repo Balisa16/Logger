@@ -1,8 +1,8 @@
 # Logger
 
-C++ Logger file. It's actually same as ROS_INFO(), ROS_WARN() and ROS_ERROR() in ROS system. But in this project message not just displayed but also write in a file which can be text (\*.txt) or csv (\*.csv).</br>
+Simple C++ Logger Program. It's actually same as ROS_INFO(), ROS_WARN() and ROS_ERROR() in ROS system. But in this project message not just displayed but also write in a file which can be text (\*.txt) or csv (\*.csv).</br>
 **ROS Message**</br>
-![ROS INFO](images/ROS_INFO_example.png)
+![ROS INFO](images/ROS_INFO_example.png)</br>
 **Logger Message**</br>
 ![Logger Test](images/logger_test.png)
 </br>
