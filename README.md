@@ -4,7 +4,9 @@ C++ Logger file. It's actually same as ROS_INFO(), ROS_WARN() and ROS_ERROR() in
 
 ## Dependencies
 Boost
-
+```
+sudo apt-get install libboost-all-dev
+```
 ## Build
 ```
 git clone https://github.com/Balisa16/Logger.git logger
