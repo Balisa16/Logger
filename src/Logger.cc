@@ -176,7 +176,7 @@ namespace EMIRO{
     std::string Logger::getLvl(LogLevel lvl, bool no_color)
     {
         std::string lvl_string = "";
-        if(no_color)
+        if(!no_color)
         {
             switch (lvl)
             {
