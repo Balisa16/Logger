@@ -226,7 +226,9 @@ namespace EMIRO{
             case LogLevel::ERROR:
                 lvl_string += f_red + "[ERROR";
                 break;
-            
+            case LogLevel::ASK:
+                lvl_string += f_cyan + "[ASK  ";
+                break;
             default:
                 break;
             }
@@ -244,7 +246,9 @@ namespace EMIRO{
             case LogLevel::ERROR:
                 lvl_string += "ERROR";
                 break;
-            
+            case LogLevel::ASK:
+                lvl_string += "ASK";
+                break;
             default:
                 break;
             }
@@ -372,6 +376,8 @@ namespace EMIRO{
             line_counter++;
             std::string header = getLvl(level, true);
             std::time_t currentTime = std::time(nullptr);
+            std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - log_fmt.start_time;
+            auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
             char timeString[100];
             {
                 std::string separator = "   ";
@@ -383,9 +389,6 @@ namespace EMIRO{
                 std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
                 header += timeString;
                 header += separator;
-                
-                std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - log_fmt.start_time;
-                auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
                 header += std::to_string(ms_elapsed.count()/1000000.0f);
 
                 header += separator + msg;
@@ -397,9 +400,6 @@ namespace EMIRO{
                 header += ' ';
                 header += timeString;
                 header += ' ';
-
-                std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - log_fmt.start_time;
-                auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
                 header += std::to_string(ms_elapsed.count()/1000000.0f);
 
                 header += "s : " + msg;
@@ -409,6 +409,81 @@ namespace EMIRO{
             update_counter(level);
         }else
             unavailable_msg();
+    }
+
+    char Logger::get_hidden_char()
+    {
+        struct termios oldt, newt;
+        char ch;
+        tcgetattr(STDIN_FILENO, &oldt);
+        newt = oldt;
+        newt.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL | ICANON);
+        tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+        std::cin >> ch;
+        tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+        return ch;
+    }
+
+    bool Logger::ask(std::string question)
+    {
+        std::lock_guard<std::mutex> lg(log_fmt.mtx);
+        std::time_t currentTime = std::time(nullptr);
+        std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - log_fmt.start_time;
+        auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
+
+        std::string msg = question;
+        std::string header = getLvl(LogLevel::ASK);
+        char timeString[100];
+        {
+            std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
+            header += ' ';
+            header += timeString;
+            header += ' ';
+            header += std::to_string(ms_elapsed.count()/1000000.0f);
+            header += "s : " + msg + " (y/n) ";
+
+            std::cout << header;
+            std::cout.flush();
+        }
+
+        bool result = false;
+        while(true)
+        {
+            char choice = get_hidden_char();
+            if(choice == 'y' || choice == 'Y')
+            {
+                result = true;
+                std::cout << "\t[" << check << " ]\n";
+                break;
+            }else if(choice == 'n' || choice == 'N')
+            {
+                std::cout << "\t[" << cross << " ]\n";
+                break;
+            }
+        }
+
+        line_counter++;
+        header = getLvl(LogLevel::ASK, true);
+        {
+            std::string separator = "   ";
+            if(type == FileType::CSV)
+                separator = ',';
+            header += separator;
+            header += std::to_string(line_counter);
+            header += separator;
+            std::strftime(timeString, sizeof(timeString), "%Y-%m-%d %H:%M:%S", std::localtime(&currentTime));
+            header += timeString;
+            header += separator;
+            header += std::to_string(ms_elapsed.count()/1000000.0f);
+
+            header += separator + msg;
+            if(result)
+                header += " [Accept]";
+            else
+                header += " [Reject]";
+            writer << header << '\n';
+        }
+        return result;
     }
 
     template <typename T>
@@ -467,6 +542,7 @@ namespace EMIRO{
         log_fmt.status = LoggerStatus::Wait_Success;
         while(!log_fmt.mtx.try_lock());
         log_fmt.mtx.unlock();
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         return *this;
     }
 
@@ -475,6 +551,7 @@ namespace EMIRO{
         log_fmt.status = LoggerStatus::Wait_Failed;
         while(!log_fmt.mtx.try_lock());
         log_fmt.mtx.unlock();
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         return *this;
     }
 

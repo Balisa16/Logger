@@ -8,6 +8,9 @@ int main()
     lg.init("test", FileType::CSV);
     lg.start(true);
 
+    if(!lg.ask("Start ?"))
+        return 0;
+
     std::vector<ListItem<double>> it;
     it.push_back({"X Pos", 5.94, "m"});
     it.push_back({"Y Pos", 2.44, "m"});

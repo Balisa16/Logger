@@ -15,6 +15,7 @@
 #include <thread>
 #include <exception>
 #include <vector>
+#include <termios.h>
 
 namespace EMIRO
 {   
@@ -58,7 +59,8 @@ namespace EMIRO
     enum class LogLevel {
         INFO,
         WARNING,
-        ERROR
+        ERROR,
+        ASK
     };
 
     enum class FileType {
@@ -98,7 +100,6 @@ namespace EMIRO
         uint64_t line_counter;
 
         LoggerFormat log_fmt;
-        LogLevel level;
         FileType type;
 
         std::ofstream writer;
@@ -109,6 +110,7 @@ namespace EMIRO
         std::string cust_printf(const char *format, va_list args);
         void unavailable_msg();
         void update_counter(LogLevel level);
+        char get_hidden_char();
 
     public:
         Logger(std::string filename, FileType type = FileType::TXT);
@@ -160,6 +162,8 @@ namespace EMIRO
          * @note Message format same as printf in C.
          */
         void write_show(LogLevel level, const char *format, ...);
+
+        bool ask(std::string question);
 
         template <typename T>
         void list_show(std::string header, std::vector<ListItem<T>> items);
