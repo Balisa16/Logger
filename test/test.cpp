@@ -17,10 +17,14 @@ int main()
     }
 
     // Witing for "Something" task and let it run in another thread
-    lg.wait("Something");
+    lg.wait("Success Task");
     std::this_thread::sleep_for(std::chrono::milliseconds(4000));
     // Send trigger to stop waiting period of "Something" task
-    lg.wait_stop();
+    lg.wait_success();
+    lg.wait("Failed Task");
+    std::this_thread::sleep_for(std::chrono::milliseconds(4000));
+    // Send trigger to stop waiting period of "Something" task
+    lg.wait_failed();
     lg.finish();
     return 0;
 }

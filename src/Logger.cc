@@ -31,7 +31,12 @@ namespace EMIRO{
         t_elapsed = std::chrono::system_clock::now() - start_wait;
         ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
 
-        std::cout << " (OK) " << std::to_string(ms_elapsed.count()/1000000.0f) << " s\n";
+        if(format->status == LoggerStatus::Wait_Success)
+            std::cout << " (" << check << " ) " << std::to_string(ms_elapsed.count()/1000000.0f) << " s\n";
+        else
+            std::cout << " (" << cross << " ) " << std::to_string(ms_elapsed.count()/1000000.0f) << " s\n";
+
+        format->status = LoggerStatus::Run;
     }
 
     Logger::Logger()
@@ -356,7 +361,14 @@ namespace EMIRO{
 
     void Logger::branch_show(std::string header, std::vector<BranchItem<float>> items)
     {
-        
+        if(!items.size())
+            return;
+        std::cout << header << std::endl;
+        if(items.size() == 1)
+        {
+
+        }
+
     }
 
     void Logger::finish()
@@ -381,9 +393,17 @@ namespace EMIRO{
         return *this;
     }
 
-    Logger& Logger::wait_stop()
+    Logger& Logger::wait_success()
     {
-        log_fmt.status = LoggerStatus::Run;
+        log_fmt.status = LoggerStatus::Wait_Success;
+        while(!log_fmt.mtx.try_lock());
+        log_fmt.mtx.unlock();
+        return *this;
+    }
+
+    Logger& Logger::wait_failed()
+    {
+        log_fmt.status = LoggerStatus::Wait_Failed;
         while(!log_fmt.mtx.try_lock());
         log_fmt.mtx.unlock();
         return *this;

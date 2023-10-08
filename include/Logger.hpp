@@ -25,6 +25,9 @@ namespace EMIRO
     const char ll_line[8] = "└─";
     const char lr_line[8] = "─┘";
 
+    const char check[17] = "\033[32m✔\033[0m";
+    const char cross[17] = "\033[31m✘\033[0m";
+
     enum class LogLevel {
         INFO,
         WARNING,
@@ -41,6 +44,8 @@ namespace EMIRO
         Init,
         Run,
         Wait,
+        Wait_Success,
+        Wait_Failed,
         Stop,
     };
 
@@ -141,7 +146,9 @@ namespace EMIRO
 
         Logger& wait(std::string wait_msg);
 
-        Logger& wait_stop();
+        Logger& wait_success();
+
+        Logger& wait_failed();
 
         ~Logger();
     };
