@@ -4,7 +4,7 @@ namespace EMIRO{
     void wait_thread(LoggerFormat *format)
     {
         std::lock_guard<std::mutex> lg(format->mtx);
-        std::string _cap = "\033[35m[WAIT ]\033[0m";
+        std::string _cap = f_magenta + "[WAIT ]" + s_reset;
         std::time_t _current_time = std::time(nullptr);
         char _time_char[100];
         std::strftime(_time_char, sizeof(_time_char), "%H:%M:%S", std::localtime(&_current_time));
@@ -32,9 +32,10 @@ namespace EMIRO{
         ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
 
         if(format->status == LoggerStatus::Wait_Success)
-            std::cout << " (" << check << " ) " << std::to_string(ms_elapsed.count()/1000000.0f) << " s\n";
+            std::cout << " (" << check;
         else
-            std::cout << " (" << cross << " ) " << std::to_string(ms_elapsed.count()/1000000.0f) << " s\n";
+            std::cout << " (" << cross;
+        std::cout << " ) " << std::to_string(ms_elapsed.count()/1000000.0f) << " s\n";
 
         format->status = LoggerStatus::Run;
     }
@@ -85,7 +86,8 @@ namespace EMIRO{
 
         std::chrono::duration<double> elapsed_seconds = stop_time - log_fmt.start_time;
 
-        std::cout << "\n\033[34m\033[1mFlight Resume :\033[0m\n\tStart Time\t: " << start_str << 
+        std::cout << '\n' << f_blue << s_bold << "Flight Resume :" << s_reset <<
+            "\n\tStart Time\t: " << start_str << 
             "\n\tStop Time\t: " << stop_str << 
             "\n\tFlight Duration\t: " << std::to_string(elapsed_seconds.count()) << " seconds\nErrors\t\t: " << err_msg << 
             " message\nWarnings\t: " << warn_msg <<
@@ -106,7 +108,7 @@ namespace EMIRO{
             if(!boost::filesystem::exists(temp_1))
                 if(!boost::filesystem::create_directory(temp_1))
                 {
-                    std::cout << "\033[31m\033[1mERROR\t: \033[0m Failed to create \"" << temp_1 << "\"\n ";
+                    std::cout << f_red << s_bold << "ERROR\t:" << s_reset << "Failed to create \"" << temp_1 << "\"\n ";
                     throw;
                 }
 
@@ -122,7 +124,7 @@ namespace EMIRO{
             temp_1 = temp_filedir + filename + file_ext;
             if(boost::filesystem::exists(temp_1.c_str()))
             {
-                std::cout << "\033[34m\033[1mFile\t: \033[0m" << temp_1 << " \033[32m\033[3m[already exist]\033[0m" << std::endl;
+                std::cout << f_blue << s_bold << "File\t: " << s_reset << temp_1 << f_green + s_italic << " [already exist]" << s_reset << std::endl;
                 int file_idx = 1;
                 temp_1 = temp_filedir + filename + "-" + std::to_string(file_idx) + file_ext;
                 while (boost::filesystem::exists(temp_1.c_str()))
@@ -133,7 +135,7 @@ namespace EMIRO{
             }
             
             this->full_filename = temp_1;
-            std::cout << "\033[34m\033[1mStored\t: \033[0m" << temp_1 << std::endl << std::endl;
+            std::cout << f_blue << s_bold << "Stored\t: " << s_reset << temp_1 << "\n\n";
             info_msg = 0;
             warn_msg = 0;
             err_msg = 0;
@@ -159,33 +161,40 @@ namespace EMIRO{
             line_counter = 0;
             log_fmt.status = LoggerStatus::Run;
         }
-        else if(log_fmt.status  == LoggerStatus::Run)
-            std::cout << "\033[33mLogger is already activated.\033[30m\n";
-        else if(log_fmt.status  == LoggerStatus::None)
-            std::cout << "\033[31mLogger is not initialized.\033[30m\n";
         else
-            std::cout << "\033[33mLogger in Waiting Mode.\033[30m\n";
+        {
+            if(log_fmt.status  == LoggerStatus::Run)
+                std::cout << f_yellow << "Logger is already activated.";
+            else if(log_fmt.status  == LoggerStatus::None)
+                std::cout << f_red << "Logger is not initialized.";
+            else
+                std::cout << f_yellow << "Logger in Waiting Mode.";
+            std::cout << s_reset << '\n';
+        }
     }
 
     std::string Logger::getLvl(LogLevel lvl, bool no_color)
     {
         std::string lvl_string = "";
         if(no_color)
+        {
             switch (lvl)
             {
             case LogLevel::INFO:
-                lvl_string += "\033[32m[INFO ]\033[0m";
+                lvl_string += f_green + "[INFO ";
                 break;
             case LogLevel::WARNING:
-                lvl_string += "\033[33m[WARN ]\033[0m";
+                lvl_string += f_yellow + "[WARN ";
                 break;
             case LogLevel::ERROR:
-                lvl_string += "\033[31m[ERROR]\033[0m";
+                lvl_string += f_red + "[ERROR";
                 break;
             
             default:
                 break;
             }
+            lvl_string += ']' + s_reset;
+        }
         else
             switch (lvl)
             {
@@ -193,7 +202,7 @@ namespace EMIRO{
                 lvl_string += "INFO";
                 break;
             case LogLevel::WARNING:
-                lvl_string += "WARN";
+                lvl_string += "WARNING";
                 break;
             case LogLevel::ERROR:
                 lvl_string += "ERROR";
@@ -214,7 +223,7 @@ namespace EMIRO{
 
     void Logger::unavailable_msg()
     {
-        std::string _msg = "\033[31m[Unavailabe]\033[0m Logger Status : ";
+        std::string _msg = f_red + "[Unavailabe]" + s_reset + " Logger Status : ";
         switch(log_fmt.status)
         {
         case LoggerStatus::None:
@@ -228,6 +237,12 @@ namespace EMIRO{
             break;
         case LoggerStatus::Wait:
             _msg += "Wait";
+            break;
+        case LoggerStatus::Wait_Success:
+            _msg += "Wait-Success";
+            break;
+        case LoggerStatus::Wait_Failed:
+            _msg += "Wait-Failed";
             break;
         case LoggerStatus::Stop:
             _msg += "Stop";
@@ -366,7 +381,19 @@ namespace EMIRO{
         std::cout << header << std::endl;
         if(items.size() == 1)
         {
-
+            std::cout << "  ─" << items[0].row_header << "\t: " << items[0].value << '\n';
+            return;
+        }
+        for (int i = 0; i < items.size(); ++i)
+        {
+            std::cout << " ";
+            if(i==0)
+                std::cout << ul_line;
+            else if(i == items.size()-1)
+                std::cout << ll_line;
+            else
+                std::cout << cl_line;
+            std::cout << items[i].row_header << "\t: " << items[i].value << " " << items[i].unit << '\n';
         }
 
     }

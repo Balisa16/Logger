@@ -18,15 +18,42 @@
 
 namespace EMIRO
 {   
-    const char cl_line[8] = "├─";
-    const char cr_line[8] = "─┤";
-    const char ul_line[8] = "┌─";
-    const char ur_line[8] = "─┐";
-    const char ll_line[8] = "└─";
-    const char lr_line[8] = "─┘";
+    // Style
+    std::string s_reset = "\033[0m";
+    std::string s_bold = "\033[1m";
+    std::string s_dim = "\033[02m";
+    std::string s_italic = "\033[3m";
+    std::string s_underline = "\033[4m";
 
-    const char check[17] = "\033[32m✔\033[0m";
-    const char cross[17] = "\033[31m✘\033[0m";
+    // Foreground
+    std::string f_black = "\033[30m";
+    std::string f_red = "\033[31m";
+    std::string f_green = "\033[32m";
+    std::string f_yellow = "\033[33m";
+    std::string f_blue = "\033[34m";
+    std::string f_magenta = "\033[35m";
+    std::string f_cyan = "\033[36m";
+    std::string f_white = "\033[37m";
+
+    // Background
+    std::string b_black = "\033[40m";
+    std::string b_red = "\033[41m";
+    std::string b_green = "\033[42m";
+    std::string b_yellow = "\033[43m";
+    std::string b_blue = "\033[44m";
+    std::string b_magenta = "\033[45m";
+    std::string b_cyan = "\033[46m";
+    std::string b_white = "\033[47m";
+    
+    std::string cl_line = "├─";
+    std::string cr_line = "─┤";
+    std::string ul_line = "┌─";
+    std::string ur_line = "─┐";
+    std::string ll_line = "└─";
+    std::string lr_line = "─┘";
+
+    std::string check = f_green + "✔" + s_reset;
+    std::string cross = f_red + "✘" + s_reset;
 
     enum class LogLevel {
         INFO,
