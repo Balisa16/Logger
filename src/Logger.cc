@@ -86,10 +86,10 @@ namespace EMIRO{
 
         std::chrono::duration<double> elapsed_seconds = stop_time - log_fmt.start_time;
 
-        std::cout << '\n' << f_blue << s_bold << "Flight Resume :" << s_reset <<
+        std::cout << '\n' << f_blue << s_bold << "Logger Resume :" << s_reset <<
             "\n\tStart Time\t: " << start_str << 
             "\n\tStop Time\t: " << stop_str << 
-            "\n\tFlight Duration\t: " << std::to_string(elapsed_seconds.count()) << " seconds\nErrors\t\t: " << err_msg << 
+            "\n\tDuration\t: " << std::to_string(elapsed_seconds.count()) << " seconds\nErrors\t\t: " << err_msg << 
             " message\nWarnings\t: " << warn_msg <<
             " message\nInformations\t: " << info_msg << " message\n\n";
     }
@@ -102,7 +102,7 @@ namespace EMIRO{
             struct passwd *pw = getpwuid(getuid());
             const char *home_char = pw->pw_dir;
             std::string home_dir = home_char;
-            std::string flight_dir = "Flight Log";
+            std::string flight_dir = "Logger";
             std::string temp_1 = home_dir + "/" + flight_dir;
 
             if(!boost::filesystem::exists(temp_1))
@@ -374,29 +374,34 @@ namespace EMIRO{
             unavailable_msg();
     }
 
-    void Logger::branch_show(std::string header, std::vector<BranchItem<float>> items)
+    template <typename T>
+    void Logger::list_show(std::string header, std::vector<ListItem<T>> items)
     {
         if(!items.size())
             return;
-        std::cout << header << std::endl;
+        std::cout << f_blue << s_bold << "〘 " << header << " 〙" << s_reset << std::endl;
         if(items.size() == 1)
         {
-            std::cout << "  ─" << items[0].row_header << "\t: " << items[0].value << '\n';
+            std::cout << "  ─" << s_bold << items[0].row_header << "\t: " << s_reset << items[0].value << '\n';
             return;
         }
         for (int i = 0; i < items.size(); ++i)
         {
-            std::cout << " ";
+            std::cout << "    ";
             if(i==0)
                 std::cout << ul_line;
             else if(i == items.size()-1)
                 std::cout << ll_line;
             else
                 std::cout << cl_line;
-            std::cout << items[i].row_header << "\t: " << items[i].value << " " << items[i].unit << '\n';
+            std::cout << s_bold << items[i].row_header << "\t: " << s_reset << items[i].value << " " << items[i].unit << '\n';
         }
 
     }
+
+    template void Logger::list_show<double>(std::string header, std::vector<ListItem<double>> items);
+    template void Logger::list_show<int>(std::string header, std::vector<ListItem<int>> items);
+    template void Logger::list_show<float>(std::string header, std::vector<ListItem<float>> items);
 
     void Logger::finish()
     {

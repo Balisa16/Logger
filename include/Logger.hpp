@@ -84,7 +84,7 @@ namespace EMIRO
     }LoggerFormat;
 
     template <typename T>
-    struct BranchItem{
+    struct ListItem{
         std::string row_header;
         T value;
         std::string unit;
@@ -161,7 +161,8 @@ namespace EMIRO
          */
         void write_show(LogLevel level, const char *format, ...);
 
-        void branch_show(std::string header, std::vector<BranchItem<float>> items);
+        template <typename T>
+        void list_show(std::string header, std::vector<ListItem<T>> items);
 
         /**
          * @brief Finished Logger System.
