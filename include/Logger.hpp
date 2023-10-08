@@ -14,9 +14,17 @@
 #include <mutex>
 #include <thread>
 #include <exception>
+#include <vector>
 
 namespace EMIRO
 {   
+    const char cl_line[8] = "├─";
+    const char cr_line[8] = "─┤";
+    const char ul_line[8] = "┌─";
+    const char ur_line[8] = "─┐";
+    const char ll_line[8] = "└─";
+    const char lr_line[8] = "─┘";
+
     enum class LogLevel {
         INFO,
         WARNING,
@@ -43,6 +51,13 @@ namespace EMIRO
         std::string message;
     }LoggerFormat;
 
+    template <typename T>
+    struct BranchItem{
+        std::string row_header;
+        T value;
+        std::string unit;
+    };
+
     class Logger
     {
     private:
@@ -57,14 +72,11 @@ namespace EMIRO
         std::ofstream writer;
         uint16_t info_msg, warn_msg, err_msg;
 
-        bool combo_msg;
         void resume();
         std::string getLvl(LogLevel lvl = LogLevel::INFO, bool no_color = false);
         std::string cust_printf(const char *format, va_list args);
         void unavailable_msg();
-
-        std::mutex mtx;
-        bool is_init = false, is_start = false;
+        void update_counter(LogLevel level);
 
     public:
         Logger(std::string filename, FileType type = FileType::TXT);
@@ -116,6 +128,8 @@ namespace EMIRO
          * @note Message format same as printf in C.
          */
         void write_show(LogLevel level, const char *format, ...);
+
+        void branch_show(std::string header, std::vector<BranchItem<float>> items);
 
         /**
          * @brief Finished Logger System.

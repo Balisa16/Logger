@@ -50,6 +50,24 @@ namespace EMIRO{
         return log_fmt.status;
     }
 
+    void Logger::update_counter(LogLevel level)
+    {
+        switch (level)
+        {
+        case LogLevel::INFO:
+            info_msg++;
+            break;
+        case LogLevel::WARNING:
+            warn_msg++;
+            break;
+        case LogLevel::ERROR:
+            err_msg++;
+            break;
+        default:
+            break;
+        }
+    }
+
     void Logger::resume()
     {
         std::time_t time = std::chrono::system_clock::to_time_t(log_fmt.start_time);
@@ -114,7 +132,6 @@ namespace EMIRO{
             info_msg = 0;
             warn_msg = 0;
             err_msg = 0;
-            combo_msg = false;
             log_fmt.status = LoggerStatus::Init;
         }
     }
@@ -135,7 +152,6 @@ namespace EMIRO{
             if(type == FileType::CSV)
                 writer << "Level,Id,Date Time,Duration (s),Message\n";
             line_counter = 0;
-            is_start = true;
             log_fmt.status = LoggerStatus::Run;
         }
         else if(log_fmt.status  == LoggerStatus::Run)
@@ -250,20 +266,7 @@ namespace EMIRO{
 
             header += separator + msg;
             writer << header << '\n';
-            switch (level)
-            {
-            case LogLevel::INFO:
-                info_msg++;
-                break;
-            case LogLevel::WARNING:
-                warn_msg++;
-                break;
-            case LogLevel::ERROR:
-                err_msg++;
-                break;
-            default:
-                break;
-            }
+            update_counter(level);
         }else
             unavailable_msg();
     }
@@ -290,26 +293,9 @@ namespace EMIRO{
             std::chrono::duration<double> t_elapsed = std::chrono::system_clock::now() - log_fmt.start_time;
             auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
             header += std::to_string(ms_elapsed.count()/1000000.0f);
-
             header += "s : " + msg;
-
             std::cout << header << '\n';
-
-            if(!combo_msg)
-                switch (level)
-                {
-                case LogLevel::INFO:
-                    info_msg++;
-                    break;
-                case LogLevel::WARNING:
-                    warn_msg++;
-                    break;
-                case LogLevel::ERROR:
-                    err_msg++;
-                    break;
-                default:
-                    break;
-                }
+            update_counter(level);
         }else
             unavailable_msg();
     }
@@ -321,8 +307,6 @@ namespace EMIRO{
 
         if(log_fmt.status  == LoggerStatus::Run)
         {
-            combo_msg = true;
-
             va_list args;
             va_start(args, format);
             std::string msg = cust_printf(format, args);
@@ -365,22 +349,14 @@ namespace EMIRO{
 
                 std::cout << header << '\n';
             }
-            switch (level)
-            {
-            case LogLevel::INFO:
-                info_msg++;
-                break;
-            case LogLevel::WARNING:
-                warn_msg++;
-                break;
-            case LogLevel::ERROR:
-                err_msg++;
-                break;
-            default:
-                break;
-            }
+            update_counter(level);
         }else
             unavailable_msg();
+    }
+
+    void Logger::branch_show(std::string header, std::vector<BranchItem<float>> items)
+    {
+        
     }
 
     void Logger::finish()
