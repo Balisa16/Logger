@@ -333,7 +333,7 @@ namespace EMIRO{
             va_end(args);
             
             line_counter++;
-            std::string header = getLvl(level);
+            std::string header = getLvl(level, true);
             std::time_t currentTime = std::time(nullptr);
             char timeString[100];
             {
@@ -354,7 +354,7 @@ namespace EMIRO{
                 header += separator + msg;
                 writer << header << '\n';
             }
-            header = getLvl(level, true);
+            header = getLvl(level);
             {
                 std::strftime(timeString, sizeof(timeString), "%H:%M:%S", std::localtime(&currentTime));
                 header += ' ';
