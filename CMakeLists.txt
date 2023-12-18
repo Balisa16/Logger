@@ -19,10 +19,10 @@ add_library(${PROJECT_NAME} SHARED
     include/Logger.hpp)
 
 install(TARGETS ${PROJECT_NAME}
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
+    LIBRARY DESTINATION "/usr/lib"
+    ARCHIVE DESTINATION "/usr/lib"
+    RUNTIME DESTINATION "/usr/bin/logger"
+    INCLUDES DESTINATION "/usr/include/logger"
 )
 
 install(FILES include/Logger.hpp DESTINATION include)
