@@ -326,7 +326,7 @@ namespace EMIRO{
             header += std::to_string(ms_elapsed.count()/1000000.0f);
 
             header += separator + msg;
-            writer << header << '\n';
+            std::cout << header << '\n';
             update_counter(level);
         }else
             unavailable_msg();
@@ -355,7 +355,13 @@ namespace EMIRO{
             auto ms_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(t_elapsed);
             header += std::to_string(ms_elapsed.count()/1000000.0f);
             header += "s : " + msg;
-            std::cout << header << '\n';
+            if (level == LogLevel::ASK)
+            {
+                std::cout << header;
+                std::cout.flush();
+            }
+            else
+                std::cout << header << '\n';
             update_counter(level);
         }else
             unavailable_msg();
@@ -404,7 +410,13 @@ namespace EMIRO{
 
                 header += "s : " + msg;
 
-                std::cout << header << '\n';
+                if (level == LogLevel::ASK)
+                {
+                    std::cout << header;
+                    std::cout.flush();
+                }
+                else
+                    std::cout << header << '\n';
             }
             update_counter(level);
         }else
