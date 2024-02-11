@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
-#include <ctime>    
+#include <ctime>
 #include <unistd.h>
 #include <sys/types.h>
 #include <pwd.h>
@@ -18,7 +18,7 @@
 #include <termios.h>
 
 namespace EMIRO
-{   
+{
     // Style
     extern std::string s_reset;
     extern std::string s_bold;
@@ -45,7 +45,7 @@ namespace EMIRO
     extern std::string b_magenta;
     extern std::string b_cyan;
     extern std::string b_white;
-    
+
     extern std::string cl_line;
     extern std::string cr_line;
     extern std::string ul_line;
@@ -56,19 +56,22 @@ namespace EMIRO
     extern std::string check;
     extern std::string cross;
 
-    enum class LogLevel {
+    enum class LogLevel
+    {
         INFO,
         WARNING,
         ERROR,
         ASK
     };
 
-    enum class FileType {
+    enum class FileType
+    {
         TXT,
         CSV
     };
 
-    enum class LoggerStatus {
+    enum class LoggerStatus
+    {
         None,
         Init,
         Run,
@@ -78,15 +81,17 @@ namespace EMIRO
         Stop,
     };
 
-    typedef struct{
+    typedef struct
+    {
         LoggerStatus status;
         std::mutex mtx;
         std::chrono::_V2::system_clock::time_point start_time;
         std::string message;
-    }LoggerFormat;
+    } LoggerFormat;
 
     template <typename T>
-    struct ListItem{
+    struct ListItem
+    {
         std::string row_header;
         T value;
         std::string unit;
@@ -118,7 +123,7 @@ namespace EMIRO
 
         /**
          * @brief Initialize filename and type of file
-         * 
+         *
          * @param filename  Filename
          * @param type      Type of file CSV or TXT
          */
@@ -126,39 +131,39 @@ namespace EMIRO
 
         /**
          * @brief Starting Logger System
-         * 
+         *
          */
         void start(bool reset_prev_counter = false);
 
         /**
          * @brief Write message into file without showing message into terminal
-         * 
+         *
          * @param level     Message Level (ERROR, WARNING, INFO).
          * @param format    Message format
          * @param ...       Additional of message variable
-         * 
+         *
          * @note Message format same as printf in C.
          */
         void write(LogLevel level, const char *format, ...);
 
         /**
          * @brief           Just showing message into terminal without write in logger file.
-         * 
+         *
          * @param level     Message Level (ERROR, WARNING, INFO).
          * @param format    Message format
          * @param ...       Additional of message variable
-         * 
+         *
          * @note Message format same as printf in C.
          */
         void show(LogLevel level, const char *format, ...);
 
         /**
          * @brief           Write message into logger file and show up message into terminal.
-         * 
+         *
          * @param level     Message Level (ERROR, WARNING, INFO).
          * @param format    Message format
          * @param ...       Additional of message variable
-         * 
+         *
          * @note Message format same as printf in C.
          */
         void write_show(LogLevel level, const char *format, ...);
@@ -170,17 +175,17 @@ namespace EMIRO
 
         /**
          * @brief Finished Logger System.
-         * 
+         *
          */
-        void finish();
+        void finish(bool show = true);
 
         LoggerStatus get_status();
 
-        Logger& wait(std::string wait_msg);
+        Logger &wait(std::string wait_msg);
 
-        Logger& wait_success();
+        Logger &wait_success();
 
-        Logger& wait_failed();
+        Logger &wait_failed();
 
         ~Logger();
     };
