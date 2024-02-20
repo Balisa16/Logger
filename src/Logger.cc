@@ -58,12 +58,10 @@ namespace EMIRO
 
         std::chrono::_V2::system_clock::time_point start_wait = std::chrono::system_clock::now();
 
-        std::cout << _cap;
-        std::cout.flush();
+        std::cout << _cap << std::flush;
         while (format->status == LoggerStatus::Wait)
         {
-            std::cout << ".";
-            std::cout.flush();
+            std::cout << "." << std::flush;
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
         t_elapsed = std::chrono::system_clock::now() - start_wait;
@@ -355,10 +353,7 @@ namespace EMIRO
             header += std::to_string(ms_elapsed.count() / 1000000.0f);
             header += "s : " + msg;
             if (level == LogLevel::ASK)
-            {
-                std::cout << header;
-                std::cout.flush();
-            }
+                std::cout << header << std::flush;
             else
                 std::cout << header << '\n';
             update_counter(level);
@@ -411,10 +406,7 @@ namespace EMIRO
                 header += "s : " + msg;
 
                 if (level == LogLevel::ASK)
-                {
-                    std::cout << header;
-                    std::cout.flush();
-                }
+                    std::cout << header << std::flush;
                 else
                     std::cout << header << '\n';
             }
@@ -455,8 +447,7 @@ namespace EMIRO
             header += std::to_string(ms_elapsed.count() / 1000000.0f);
             header += "s : " + msg + " (y/n) ";
 
-            std::cout << header;
-            std::cout.flush();
+            std::cout << header << std::flush;
         }
 
         bool result = false;
