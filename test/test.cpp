@@ -8,7 +8,7 @@ int main()
     lg.init("test", FileType::CSV);
     lg.start(true);
 
-    if(!lg.ask("Start ?"))
+    if (!lg.ask("Start ?"))
         return 0;
 
     std::vector<ListItem<double>> it;
@@ -30,11 +30,11 @@ int main()
     std::this_thread::sleep_for(std::chrono::milliseconds(4000));
     // Send trigger to stop waiting period of "Something" task
     lg.wait_success();
-    
+
     lg.wait("Failed Task");
     std::this_thread::sleep_for(std::chrono::milliseconds(4000));
     // Send trigger to stop waiting period of "Something" task
     lg.wait_failed();
-    lg.finish();
+    lg.finish(false);
     return 0;
 }

@@ -323,7 +323,7 @@ namespace EMIRO
             header += std::to_string(ms_elapsed.count() / 1000000.0f);
 
             header += separator + msg;
-            std::cout << header << '\n';
+            writer << header << '\n';
             update_counter(level);
         }
         else
